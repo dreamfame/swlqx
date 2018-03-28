@@ -59,16 +59,16 @@ public class main : MonoBehaviour {
                 uint audio_len = 0;
 
                 SynthStatus synth_status = SynthStatus.MSP_TTS_FLAG_STILL_HAVE_DATA;
-                ret = TTS.MSPLogin("390378816@qq.com", "ai910125.0", login_configs);//第一个参数为用户名，第二个参数为密码，第三个参数是登录参数，用户名和密码需要在http://open.voicecloud.cn  
+                ret = TTS.MSPLogin(string.Empty, string.Empty, login_configs);//第一个参数为用户名，第二个参数为密码，第三个参数是登录参数，用户名和密码需要在http://open.voicecloud.cn  
                 //MSPLogin方法返回失败  
                 if (ret != (int)ErrorCode.MSP_SUCCESS)
                 {
                     return;
                 }
                 //string parameter = "engine_type = local, voice_name=xiaoyan, tts_res_path =fo|res\\tts\\xiaoyan.jet;fo|res\\tts\\common.jet, sample_rate = 16000";  
-                string _params = "ssm=1,ent=sms16k,vcn=xiaoyan,spd=medium,aue=speex-wb;7,vol=x-loud,auf=audio/L16;rate=16000";
-                //string @params = "engine_type = local,voice_name=xiaoyan,speed=50,volume=50,pitch=50,rcn=1, text_encoding = UTF8, background_sound=1,sample_rate = 16000";  
-                session_ID = TTS.QTTSSessionBegin(_params, ref ret);
+                //string _params = "ssm=1,ent=sms16k,voice_name=xiaoyan,spd=medium,aue=speex-wb;7,vol=x-loud,auf=audio/L16;rate=16000";
+                string @params = "engine_type = cloud,voice_name=xiaoyan,speed=50,volume=50,pitch=50,rcn=1, text_encoding = UTF8, background_sound=1,sample_rate = 16000";
+                session_ID = TTS.QTTSSessionBegin(@params, ref ret);
                 //QTTSSessionBegin方法返回失败  
                 if (ret != (int)ErrorCode.MSP_SUCCESS)
                 {
@@ -82,7 +82,7 @@ public class main : MonoBehaviour {
                 }
 
                 MemoryStream memoryStream = new MemoryStream();
-                memoryStream.Write(new byte[44], 0, 44);
+                memoryStream.Write(new byte[200], 0, 200);
                 while (true)
                 {
                     IntPtr source = TTS.QTTSAudioGet(Ptr2Str(session_ID), ref audio_len, ref synth_status, ref ret);
@@ -96,7 +96,7 @@ public class main : MonoBehaviour {
                     if (synth_status == SynthStatus.MSP_TTS_FLAG_DATA_END || ret != 0)
                         break;
                 }
-                WAVE_Header wave_Header = getWave_Header((int)memoryStream.Length - 44);
+                WAVE_Header wave_Header = getWave_Header((int)memoryStream.Length - 200);
                 byte[] array2 = this.StructToBytes(wave_Header);
                 memoryStream.Position = 0L;
                 memoryStream.Write(array2, 0, array2.Length);
