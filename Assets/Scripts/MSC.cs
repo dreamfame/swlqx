@@ -216,14 +216,15 @@ namespace Assets.Scripts
         MSP_TTS_FLAG_CMD_CANCELED = 0
     }  
 
-	public class TTS
+	public class MSC
 	{
+        //通用类
         [DllImport("msc", CallingConvention = CallingConvention.Winapi)]
         public static extern int MSPLogin(string user, string password, string configs);
-
         [DllImport("msc", CallingConvention = CallingConvention.Winapi)]
         public static extern int MSPLogout();
 
+        //语音合成(QTTS)
         [DllImport("msc", CallingConvention = CallingConvention.Winapi)]
         public static extern IntPtr QTTSSessionBegin(string _params, ref int errorCode);
 
@@ -237,6 +238,18 @@ namespace Assets.Scripts
         public static extern IntPtr QTTSAudioInfo(string sessionID);
 
         [DllImport("msc", CallingConvention = CallingConvention.Winapi)]
-        public static extern int QTTSSessionEnd(string sessionID, string hints);  
-	}
+        public static extern int QTTSSessionEnd(string sessionID, string hints);
+
+        //语音识别(QISR)
+        [DllImport("msc", CallingConvention = CallingConvention.Winapi)]
+        public static extern IntPtr QISRSessionBegin(string grammarList, string _params,ref int errorCode);
+        [DllImport("msc", CallingConvention = CallingConvention.Winapi)]
+        public static extern IntPtr QISRGetResult(string sessionID, int rsltStatus, int waitTime, int errorCode);
+        [DllImport("msc", CallingConvention = CallingConvention.Winapi)]
+        public static extern int QISRSessionEnd(string sessionID, string hints);
+        [DllImport("msc", CallingConvention = CallingConvention.Winapi)]
+        public static extern int QISRAudioWrite(string sessionID,IntPtr waveData, uint waveLen, int audioStatus,int epStatus,int recogStatus);
+        //[DllImport("msc", CallingConvention = CallingConvention.Winapi)]
+        //public static extern int QISRBuildGrammar(string grammarType, string grammarContent, uint grammarLength, string _params,[MarshalAs(UnmanagedType.GrammarCallBack)] callback, IntPtr userData);
+    }
 }

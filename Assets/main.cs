@@ -8,7 +8,7 @@ using System.Text;
 using System.Runtime.InteropServices;  
 using System.IO;  
 using System.Threading;
-using Assets.Scripts;  
+using Assets.Scripts;
 
 public class main : MonoBehaviour {
 
@@ -22,8 +22,22 @@ public class main : MonoBehaviour {
 
     public IntPtr session_ID;
 
-	// Use this for initialization
-	void Start () {
+    private class msp_login{
+       public static string Config = "appid = 5ab8b014";
+       public static string Account = "390378816@qq.com";
+       public static string Passwd = "ai910125.0";
+    };
+
+    private class msp_params_sample
+    {
+        public string QISR_SessionBeginParams()
+        {
+            return string.Format("engine_type = {0}, asr_res_path = {1} sample_rate = {2} grm_build_path = {3} local_grammar = {4} result_type = {5}, result_encoding = {6}");
+        }
+    }
+
+    // Use this for initialization
+    void Start () {
        // Movie.SetActive(true);
 	}
 	
@@ -43,12 +57,37 @@ public class main : MonoBehaviour {
                 m.PlayMovie("a2");
             }
         }*/
+        if (Input.GetMouseButtonDown(2))
+        {
+            try
+            {
+                int retCode = MSC.MSPLogin(null, null, "appid = 5ab8b014 ");
+                Debug.Log(string.Format("msp retCode[{1}],login success:{0}\n",(retCode == (int)ErrorCode.MSP_SUCCESS), retCode));
+                if(retCode != (int)ErrorCode.MSP_SUCCESS) { return; }
+                string params_str = string.Format("engine_type = {0}, asr_res_path = {1}, grm_build_path = {2}, local_grammar = {3}, result_type = json, result_encoding = UTF-8",
+                    "local",
+                    "H:\voice _cache",
+                    "H:\voice _cache",
+                    ""
+                    );
+                session_ID = MSC.QTTSSessionBegin(params_str, ref retCode);
+                Debug.Log(string.Format("-->start a session[{0}]\n", session_ID));
+            }
+            catch (Exception e)
+            {
+                Debug.Log(e.Message);
+            }
+            finally
+            {
+                MSC.MSPLogout();
+            }
+        }
         if (Input.GetMouseButtonDown(0)) 
         {
             try
             {
                 ///APPID请勿随意改动  
-                string login_configs = "appid =5ab8b014 ";//登录参数,自己注册后获取的appid  
+                string login_configs = "appid = 5ab8b014 ";//登录参数,自己注册后获取的appid  
                 string text = "你好，我是沙勿略，很高兴见到你！";//待合成的文本  
                 if (string.IsNullOrEmpty(text.Trim()))
                 {
@@ -59,7 +98,7 @@ public class main : MonoBehaviour {
                 uint audio_len = 0;
 
                 SynthStatus synth_status = SynthStatus.MSP_TTS_FLAG_STILL_HAVE_DATA;
-                ret = TTS.MSPLogin("390378816@qq.com", "ai910125.0", login_configs);//第一个参数为用户名，第二个参数为密码，第三个参数是登录参数，用户名和密码需要在http://open.voicecloud.cn  
+                ret = MSC.MSPLogin("390378816@qq.com", "ai910125.0", login_configs);//第一个参数为用户名，第二个参数为密码，第三个参数是登录参数，用户名和密码需要在http://open.voicecloud.cn 
                 //MSPLogin方法返回失败  
                 if (ret != (int)ErrorCode.MSP_SUCCESS)
                 {
@@ -68,13 +107,13 @@ public class main : MonoBehaviour {
                 //string parameter = "engine_type = local, voice_name=xiaoyan, tts_res_path =fo|res\\tts\\xiaoyan.jet;fo|res\\tts\\common.jet, sample_rate = 16000";  
                 string _params = "ssm=1,ent=sms16k,vcn=xiaoyan,spd=medium,aue=speex-wb;7,vol=x-loud,auf=audio/L16;rate=16000";
                 //string @params = "engine_type = local,voice_name=xiaoyan,speed=50,volume=50,pitch=50,rcn=1, text_encoding = UTF8, background_sound=1,sample_rate = 16000";  
-                session_ID = TTS.QTTSSessionBegin(_params, ref ret);
+                session_ID = MSC.QTTSSessionBegin(_params, ref ret);
                 //QTTSSessionBegin方法返回失败  
                 if (ret != (int)ErrorCode.MSP_SUCCESS)
                 {
                     return;
                 }
-                ret = TTS.QTTSTextPut(Ptr2Str(session_ID), text, (uint)Encoding.Default.GetByteCount(text), string.Empty);
+                ret = MSC.QTTSTextPut(Ptr2Str(session_ID), text, (uint)Encoding.Default.GetByteCount(text), string.Empty);
                 //QTTSTextPut方法返回失败  
                 if (ret != (int)ErrorCode.MSP_SUCCESS)
                 {
@@ -85,7 +124,7 @@ public class main : MonoBehaviour {
                 memoryStream.Write(new byte[44], 0, 44);
                 while (true)
                 {
-                    IntPtr source = TTS.QTTSAudioGet(Ptr2Str(session_ID), ref audio_len, ref synth_status, ref ret);
+                    IntPtr source = MSC.QTTSAudioGet(Ptr2Str(session_ID), ref audio_len, ref synth_status, ref ret);
                     byte[] array = new byte[(int)audio_len];
                     if (audio_len > 0)
                     {
@@ -116,8 +155,8 @@ public class main : MonoBehaviour {
             }
             finally
             {
-                ret = TTS.QTTSSessionEnd(Ptr2Str(session_ID), "");
-                ret = TTS.MSPLogout();//退出登录  
+                ret = MSC.QTTSSessionEnd(Ptr2Str(session_ID), "");
+                ret = MSC.MSPLogout();//退出登录  
             }  
         }
     }
