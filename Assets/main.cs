@@ -13,7 +13,7 @@ using Assets.Scripts;
 public class main : MonoBehaviour {
 
     public GameObject Movie;
-
+    public GameObject CharacterModel;
     public bool isPlayed = false;
     private int videoNo = 0;
     private float DeltaT = 0f;
@@ -39,10 +39,13 @@ public class main : MonoBehaviour {
     // Use this for initialization
     void Start () {
        // Movie.SetActive(true);
+        init();
+        FlowManage.EnterStandBy(CharacterModel);
 	}
 	
 	// Update is called once per frame
-	void Update () {
+    void Update()
+    {
         /*if (!isPlayed)
         {
             isPlayed = true;
@@ -62,8 +65,8 @@ public class main : MonoBehaviour {
             try
             {
                 int retCode = MSC.MSPLogin(null, null, "appid = 5ab8b014 ");
-                Debug.Log(string.Format("msp retCode[{1}],login success:{0}\n",(retCode == (int)ErrorCode.MSP_SUCCESS), retCode));
-                if(retCode != (int)ErrorCode.MSP_SUCCESS) { return; }
+                Debug.Log(string.Format("msp retCode[{1}],login success:{0}\n", (retCode == (int)ErrorCode.MSP_SUCCESS), retCode));
+                if (retCode != (int)ErrorCode.MSP_SUCCESS) { return; }
                 string params_str = string.Format("engine_type = {0}, asr_res_path = {1}, grm_build_path = {2}, local_grammar = {3}, result_type = json, result_encoding = UTF-8",
                     "local",
                     "H:\voice _cache",
@@ -82,17 +85,19 @@ public class main : MonoBehaviour {
                 MSC.MSPLogout();
             }
         }
-        if (Input.GetMouseButtonDown(0)) 
+        if (Input.GetMouseButtonDown(0))
         {
             VoiceManage vm = new VoiceManage();
-            string path = vm.PlayVoice("你好，我是沙勿略。很高兴见到你！","welcome","Assets/Resources/voice");
+            string text = "你好，我是沙勿略，很高兴见到你！";
+            string path = vm.PlayVoice(text, "welcome", "Assets/Resources/voice");
             var ac = UnityEditor.AssetDatabase.LoadAssetAtPath(path, typeof(AudioClip)) as AudioClip;
             var aud = Camera.main.GetComponent<AudioSource>();
             aud.clip = ac;
             aud.Play();
         }
-        if (Input.GetMouseButtonDown(1)) 
+        if (Input.GetMouseButtonDown(1))
         {
+            VoiceManage vm = new VoiceManage();
             AskQuestion aq = new AskQuestion();
             var temp = aq.GetQuestions();
             if (temp == null)
@@ -101,103 +106,28 @@ public class main : MonoBehaviour {
             }
             else
             {
-                foreach (var t in temp)
-                {
-                    Debug.Log(t.title);
-                }
+                Debug.Log(temp[0].title);
+                string path = vm.PlayVoice(temp[0].title, "1", "Assets/Resources/voice");
+                var ac = UnityEditor.AssetDatabase.LoadAssetAtPath(path, typeof(AudioClip)) as AudioClip;
+                var aud = Camera.main.GetComponent<AudioSource>();
+                aud.clip = ac;
+                aud.Play();
             }
         }
     }
 
     /// <summary>
-    /// 结构体转字符串
+    /// 程序初始化
     /// </summary>
-    /// <param name="structure"></param>
-    /// <returns></returns>
-    private byte[] StructToBytes(object structure)
+    public void init() 
     {
-        int num = Marshal.SizeOf(structure);
-        IntPtr intPtr = Marshal.AllocHGlobal(num);
-        byte[] result;
-        try
+        if (CharacterModel == null) 
         {
-            Marshal.StructureToPtr(structure, intPtr, false);
-            byte[] array = new byte[num];
-            Marshal.Copy(intPtr, array, 0, num);
-            result = array;
+            Debug.Log("加载人物模型失败");
+            return;
         }
-        finally
-        {
-            Marshal.FreeHGlobal(intPtr);
-        }
-        return result;
+        CharacterModel.GetComponent<Animation>().Stop();
     }
-    /// <summary>
-    /// 结构体初始化赋值
-    /// </summary>
-    /// <param name="data_len"></param>
-    /// <returns></returns>
-    private WAVE_Header getWave_Header(int data_len)
-    {
-        return new WAVE_Header
-        {
-            RIFF_ID = 1179011410,
-            File_Size = data_len + 36,
-            RIFF_Type = 1163280727,
-            FMT_ID = 544501094,
-            FMT_Size = 16,
-            FMT_Tag = 1,
-            FMT_Channel = 1,
-            FMT_SamplesPerSec = 16000,
-            AvgBytesPerSec = 32000,
-            BlockAlign = 2,
-            BitsPerSample = 16,
-            DATA_ID = 1635017060,
-            DATA_Size = data_len
-        };
-    }
-
-    /// <summary>  
-    /// 语音音频头  
-    /// </summary>  
-    private struct WAVE_Header
-    {
-        public int RIFF_ID;
-        public int File_Size;
-        public int RIFF_Type;
-        public int FMT_ID;
-        public int FMT_Size;
-        public short FMT_Tag;
-        public ushort FMT_Channel;
-        public int FMT_SamplesPerSec;
-        public int AvgBytesPerSec;
-        public ushort BlockAlign;
-        public ushort BitsPerSample;
-        public int DATA_ID;
-        public int DATA_Size;
-    }
-    /// 指针转字符串  
-    /// </summary>  
-    /// <param name="p">指向非托管代码字符串的指针</param>  
-    /// <returns>返回指针指向的字符串</returns>  
-    public static string Ptr2Str(IntPtr p)
-    {
-        List<byte> lb = new List<byte>();
-        while (Marshal.ReadByte(p) != 0)
-        {
-            lb.Add(Marshal.ReadByte(p));
-            if (IntPtr.Size == 4)
-            {
-                p = (IntPtr)(p.ToInt32() + 1);
-            }
-            else
-            {
-                p = (IntPtr)(p.ToInt64() + 1);
-            }
-        }
-        byte[] bs = lb.ToArray();
-        return Encoding.Default.GetString(lb.ToArray());
-    }  
 
     public void CloseMovie() 
     {
