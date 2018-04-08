@@ -214,9 +214,55 @@ namespace Assets.Scripts
         MSP_TTS_FLAG_STILL_HAVE_DATA = 1,
         MSP_TTS_FLAG_DATA_END = 2,
         MSP_TTS_FLAG_CMD_CANCELED = 0
-    }  
+    }
+    /// <summary>
+    /// 语音识别 音频状态
+    /// </summary>
+    public enum audioStatus
+    {
+        MSP_AUDIO_SAMPLE_FIRST = 1,
+        MSP_AUDIO_SAMPLE_CONTINUE = 2,
+        MSP_AUDIO_SAMPLE_LAST = 4
+    }
+    /// <summary>
+    /// 语音识别
+    /// </summary>
+    public enum epStatus
+    {   
+        MSP_EP_NULL = -1,
+        MSP_EP_LOOKING_FOR_SPEECH = 0,
+        MSP_EP_IN_SPEECH = 1,
+        MSP_EP_AFTER_SPEECH = 3,
+        MSP_EP_TIMEOUT = 4,
+        MSP_EP_ERROR = 5,
+        MSP_EP_MAX_SPEECH = 6
+    }
+    /// <summary>
+    /// 语音识别录音状态
+    /// </summary>
+    public enum rsltStatus
+    {
+        MSP_REC_STATUS_SUCCESS = 0,
+        MSP_REC_STATUS_NO_MATCH = 1,
+        MSP_REC_STATUS_INCOMPLETE = 2,
+        MSP_REC_STATUS_COMPLETE = 5
+    }
+    /// <summary>
+    /// 语音唤醒 回调返回函数状态
+    /// </summary>
+    public enum msgProcCb
+    {
+        MSP_IVW_MSG_WAKEUP = 1,         //唤醒消息，在info中给出唤醒结果缓存首地址，param2 给出唤醒结果的长度。
+        MSP_IVW_MSG_ERROR = 2,          //出错通知消息，在param1 中给出错误码。
+        MSP_IVW_MSG_ISR_RESULT = 3,     //唤醒+识别结果消息，在info 中给出识别结果缓存首地址，param2 给出识别结果的长度。param1 中给出给出结果状态，结果状态值参见QISRAudioWrite接口中结果状态说明
+        MSP_IVW_MSG_ISR_EPS = 4         //唤醒+识别结果中vad 端点检测消息，param1 给出端点检测状态，状态值参见QISRAudioWrite接口中端点检测状态说明。
+    }
 
-	public class MSC
+    public delegate int GrammarCallBack(int errorCode, string info, IntPtr userData);
+
+    public delegate int ivw_ntf_handler(string sessionID, msgProcCb msg, int param1, int param2, IntPtr info, IntPtr userData);
+
+    public class MSC
 	{
         //通用类
         [DllImport("msc", CallingConvention = CallingConvention.Winapi)]
@@ -244,12 +290,23 @@ namespace Assets.Scripts
         [DllImport("msc", CallingConvention = CallingConvention.Winapi)]
         public static extern IntPtr QISRSessionBegin(string grammarList, string _params,ref int errorCode);
         [DllImport("msc", CallingConvention = CallingConvention.Winapi)]
-        public static extern IntPtr QISRGetResult(string sessionID, int rsltStatus, int waitTime, int errorCode);
+        public static extern IntPtr QISRGetResult(string sessionID,ref rsltStatus rsltStatus, int waitTime,ref int errorCode);
         [DllImport("msc", CallingConvention = CallingConvention.Winapi)]
         public static extern int QISRSessionEnd(string sessionID, string hints);
         [DllImport("msc", CallingConvention = CallingConvention.Winapi)]
-        public static extern int QISRAudioWrite(string sessionID,IntPtr waveData, uint waveLen, int audioStatus,int epStatus,int recogStatus);
-        //[DllImport("msc", CallingConvention = CallingConvention.Winapi)]
-        //public static extern int QISRBuildGrammar(string grammarType, string grammarContent, uint grammarLength, string _params,[MarshalAs(UnmanagedType.GrammarCallBack)] callback, IntPtr userData);
+        public static extern int QISRAudioWrite(string sessionID,IntPtr waveData, uint waveLen, audioStatus audioStatus,ref epStatus epStatus,ref rsltStatus recogStatus);
+        [DllImport("msc", CallingConvention = CallingConvention.Winapi)]
+        public static extern int QISRBuildGrammar(string grammarType, string grammarContent, uint grammarLength, string _params,GrammarCallBack callback, IntPtr userData);
+
+        //语音唤醒(QIVW)
+        [DllImport("msc", CallingConvention = CallingConvention.Winapi)]
+        public static extern IntPtr QIVWSessionBegin(string grammarList, string _params, ref int errorCode);
+        [DllImport("msc", CallingConvention = CallingConvention.Winapi)]
+        public static extern int QIVWSessionEnd(string sessionID, string hints);
+        [DllImport("msc", CallingConvention = CallingConvention.Winapi)]
+        public static extern int QIVWAudioWrite(string sessionID, IntPtr audioData,uint audioLen, audioStatus audioStatus);
+        [DllImport("msc", CallingConvention = CallingConvention.Winapi)]
+        public static extern int QIVWRegisterNotify(string sessionID, ivw_ntf_handler msgProcCb, IntPtr userData);
+
     }
 }
