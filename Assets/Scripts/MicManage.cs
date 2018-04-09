@@ -12,7 +12,7 @@ namespace Assets.Scripts
         /// 麦克风设置
         /// </summary>
         private int maxRecordTime = 5;
-        private int samplingRate = 44100;
+        private int samplingRate = 16000;
         AudioSource source;
         public MicManage(AudioSource source)
         {
@@ -20,15 +20,10 @@ namespace Assets.Scripts
         }
         public void start()
         {
-            if (!Microphone.IsRecording(null))
-            {
-                source.Stop();
-                source.clip = Microphone.Start(null,true, maxRecordTime, samplingRate);
-                while (!(Microphone.GetPosition(null) > 0)) { }
-                source.Play();
-                Debug.Log("开始录音..");
-            }
-            
+            source.Stop();
+            source.clip = Microphone.Start(null,true, maxRecordTime, samplingRate);
+            while (!(Microphone.GetPosition(null) > 0)) { }
+            Debug.Log("开始录音..");
         }
         public void stop()
         {
