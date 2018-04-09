@@ -294,7 +294,7 @@ namespace Assets.Scripts
         [DllImport("msc", CallingConvention = CallingConvention.Winapi)]
         public static extern int QISRSessionEnd(string sessionID, string hints);
         [DllImport("msc", CallingConvention = CallingConvention.Winapi)]
-        public static extern int QISRAudioWrite(string sessionID,IntPtr waveData, uint waveLen, audioStatus audioStatus,ref epStatus epStatus,ref rsltStatus recogStatus);
+        public static extern int QISRAudioWrite(string sessionID,byte[] waveData, uint waveLen, audioStatus audioStatus,ref epStatus epStatus,ref rsltStatus recogStatus);
         [DllImport("msc", CallingConvention = CallingConvention.Winapi)]
         public static extern int QISRBuildGrammar(string grammarType, string grammarContent, uint grammarLength, string _params,GrammarCallBack callback, IntPtr userData);
 
@@ -304,7 +304,7 @@ namespace Assets.Scripts
         [DllImport("msc", CallingConvention = CallingConvention.Winapi)]
         public static extern int QIVWSessionEnd(string sessionID, string hints);
         [DllImport("msc", CallingConvention = CallingConvention.Winapi)]
-        public static extern int QIVWAudioWrite(string sessionID, IntPtr audioData,uint audioLen, audioStatus audioStatus);
+        public static extern int QIVWAudioWrite(string sessionID, byte[] audioData,uint audioLen, audioStatus audioStatus);
         [DllImport("msc", CallingConvention = CallingConvention.Winapi)]
         public static extern int QIVWRegisterNotify(string sessionID, ivw_ntf_handler msgProcCb, IntPtr userData);
 
