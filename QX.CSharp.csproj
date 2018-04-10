@@ -64,6 +64,9 @@
     <Reference Include="UnityEditor">
       <HintPath>Library\UnityAssemblies\UnityEditor.dll</HintPath>
     </Reference>
+    <Reference Include="NAudio">
+      <HintPath>Assets\Plugins\NAudio.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\NGUI\Examples\Scripts\InventorySystem\Game\EquipItems.cs" />
@@ -205,8 +208,13 @@
     <Compile Include="Assets\NGUI\Scripts\UI\UITexture.cs" />
     <Compile Include="Assets\NGUI\Scripts\UI\UITooltip.cs" />
     <Compile Include="Assets\NGUI\Scripts\UI\UIViewport.cs" />
+    <Compile Include="Assets\Scripts\AnimationControl.cs" />
+    <Compile Include="Assets\Scripts\Answer.cs" />
+    <Compile Include="Assets\Scripts\AskQuestion.cs" />
+    <Compile Include="Assets\Scripts\FlowManage.cs" />
+    <Compile Include="Assets\Scripts\MSC.cs" />
+    <Compile Include="Assets\Scripts\MicManage.cs" />
     <Compile Include="Assets\Scripts\MovieManage.cs" />
-    <Compile Include="Assets\Scripts\TTS.cs" />
     <Compile Include="Assets\Scripts\UI\DynamicProgressBar.cs" />
     <Compile Include="Assets\Scripts\UI\IBaseModel.cs" />
     <Compile Include="Assets\Scripts\UI\IupdateUI.cs" />
@@ -216,6 +224,8 @@
     <Compile Include="Assets\Scripts\UI\UIModel.cs" />
     <Compile Include="Assets\Scripts\UI\UIScreenAdaptive.cs" />
     <Compile Include="Assets\Scripts\UI\UIbase.cs" />
+    <Compile Include="Assets\Scripts\VoiceManage.cs" />
+    <Compile Include="Assets\Scripts\XmlUtil.cs" />
     <Compile Include="Assets\main.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -261,6 +271,8 @@
     <None Include="Assets\NGUI\Resources\Shaders\Unlit - Transparent Packed 2.shader" />
     <None Include="Assets\NGUI\Resources\Shaders\Unlit - Transparent Packed 3.shader" />
     <None Include="Assets\NGUI\Resources\Shaders\Unlit - Transparent Packed.shader" />
+    <None Include="Assets\Resources\Question\questions1.xml" />
+    <None Include="Assets\Resources\Question\questions2.xml" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\SyntaxTree\UnityVS\2010\UnityVS.CSharp.targets" />
 </Project>
