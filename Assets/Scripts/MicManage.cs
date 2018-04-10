@@ -69,34 +69,6 @@ namespace Assets.Scripts
                 source.Play();
             }
         }
-        public byte[] getData()
-        {
-            if (source.clip == null)
-            {
-                Debug.Log("getData audio.clip is null");
-                return null;
-            }
-            float[] temp = new float[source.clip.samples];
-            source.clip.GetData(temp, 0);
-            byte[] outData = new byte[temp.Length * 2];
-            int reScaleFactor = 32767;
-
-            for (int i = 0; i < temp.Length; i++)
-            {
-                short tempShort = (short)(temp[i] * reScaleFactor);
-                byte[] tempData = System.BitConverter.GetBytes(tempShort);
-
-                outData[i * 2] = tempData[0];
-                outData[i * 2 + 1] = tempData[1];
-            }
-            if (outData == null || outData.Length <= 0)
-            {
-                Debug.Log("GetClipData intData is null");
-                return null;
-            }
-            return outData;
-        }
-
         /// <summary>
         /// 音频保存为wav文件
         /// </summary>

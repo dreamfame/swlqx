@@ -76,6 +76,17 @@ public class main : MonoBehaviour
             aud.clip = ac;
             aud.Play();
         }
+        //语音唤醒测试
+        if (Input.GetKeyUp(KeyCode.A))
+        {
+            VoiceManage vm = new VoiceManage();
+            vm.VoiceWakeUp();
+        }
+        if (Input.GetKeyUp(KeyCode.S))
+        {
+            VoiceManage vm = new VoiceManage();
+            vm.VoiceDistinguish();
+        }
     }
 
     /// <summary>
