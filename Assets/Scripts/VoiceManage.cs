@@ -29,6 +29,8 @@ public class VoiceManage {
     public static epStatus ep_status = epStatus.MSP_EP_NULL;
     public static rsltStatus rec_status = rsltStatus.MSP_REC_STATUS_SUCCESS;
 
+    private static int FRAME_LEN = 640;
+
     private class msp_login
     {
         public static string APPID = "appid = 5ab8b014";
@@ -226,25 +228,32 @@ public class VoiceManage {
             retCode = MSC.QIVWRegisterNotify(session_Id, registerCallback, new IntPtr());
             if (retCode != (int)ErrorCode.MSP_SUCCESS) { Debug.Log("注册失败!"); return; }
             Debug.Log(string.Format("{1} 注册成功,语音唤醒[{0}]正在初始化...", session_Id, DateTime.Now.Ticks));
-            //while (!mic_flag)
-            //{
-            mic.start();
-
-            //Thread.Sleep(5 * 1000);
-            if (mic.getData() == null)
-            {
-                Debug.LogError("未接受有效语音数据！");
-                return;
-            }
-            byte[] recRet = mic.getData();
-
-            Debug.Log(string.Format("{1} 音频长度[{0}]", (uint)mic.getData().Length, DateTime.Now.Ticks));
-            //AudioSource audio = GetComponent<AudioSource>();
-            //audio.clip.SetData(mic.getData())
-            int errCode = MSC.QIVWAudioWrite(session_Id, Byte2Ptr(mic.getData()), (uint)mic.getData().Length, audio_stat);
-            Debug.Log(string.Format("QIVWAudioWrite returned: {0}", errCode));
-            //}
-            MSC.QIVWSessionEnd(session_Id, string.Empty);
+            string file =  mic.startRecording("hx");
+                if (file == string.Empty) { return; }
+                byte[] audio_buffer = GetFileData(file);
+                int audio_size = audio_buffer.Length;
+                int audio_count = 0;
+                while (audio_stat != audioStatus.MSP_AUDIO_SAMPLE_LAST)
+                {
+                    int len = 10 * FRAME_LEN; //16k音频，10帧 （时长200ms）
+                    audio_stat = audioStatus.MSP_AUDIO_SAMPLE_CONTINUE;
+                    if (audio_size <= len)
+                    {   
+                        len = audio_size;
+                        audio_stat = audioStatus.MSP_AUDIO_SAMPLE_LAST; //最后一块
+                    }
+                    if (0 == audio_count)
+                    {
+                        audio_stat = audioStatus.MSP_AUDIO_SAMPLE_FIRST;
+                    }
+                    //Debug.Log(string.Format("{1} 音频长度[{0}]", len, DateTime.Now.Ticks));
+                    retCode = MSC.QIVWAudioWrite(session_Id, audio_buffer.Skip(audio_count).Take(len).ToArray(),(uint)len, audio_stat);
+                    if (retCode != (int)ErrorCode.MSP_SUCCESS) { Debug.Log(string.Format("{0} 语音唤醒失败:{1}", DateTime.Now.Ticks, retCode)); return; }
+                    audio_count += len;
+                    audio_size -= len;
+                    Thread.Sleep(200);
+                }
+                MSC.QIVWSessionEnd(session_Id, string.Empty);
         }
         finally
         {
@@ -259,8 +268,7 @@ public class VoiceManage {
     {
         try
         {
-            Debug.Log(string.Format("登陆移动语音终端..."));
-            int retCode = MSC.MSPLogin(null, null, msp_login.APPID);
+            int retCode = MSC.MSPLogin(null, null, msp_login.APPID + ",work_dir = .");
             Debug.Log(string.Format("-->移动语音终端登陆结果:retCode[{1}],login success:{0}\n", (retCode == (int)ErrorCode.MSP_SUCCESS), retCode));
             if (retCode != (int)ErrorCode.MSP_SUCCESS) { Debug.Log("登陆失败!"); return; }
             //生成语法ID
@@ -268,10 +276,13 @@ public class VoiceManage {
             //int grammar_ID = MSC.QISRBuildGrammar("bnf","",10,grammar_params,,);
             //string session_params = string.Format("engine_type = {0}, asr_res_path = {1}, grm_build_path = {2}, local_grammar = {3}, result_type = json, result_encoding = UTF-8","local",asr_res_path,grm_build_path,grammar_ID);
 
-            string session_params = "sub=iat,ssm=1,auf=audio/L16;rate=16000,aue=speex,ent=sms16k,rst=plain";
+            string session_params = "engine_type=cloud,sub = iat, domain = iat, language = zh_cn, accent = mandarin, sample_rate = 16000, result_type = plain, result_encoding = UTF-8";
             session_Id = Ptr2Str(MSC.QISRSessionBegin(string.Empty, session_params, ref retCode));
             Debug.Log(string.Format("-->开启一次语音识别[{0}]", session_Id));
-            retCode = MSC.QISRAudioWrite(session_Id, IntPtr.Zero, 0, audioStatus.MSP_AUDIO_SAMPLE_LAST, ref ep_status, ref rec_status);
+            string file = mic.startRecording("rec");
+            byte[] audio_buffer = GetFileData(file);
+            int len = 10 * FRAME_LEN; //16k音频，10帧 （时长200ms）
+            retCode = MSC.QISRAudioWrite(session_Id, audio_buffer, (uint)len, audioStatus.MSP_AUDIO_SAMPLE_LAST, ref ep_status, ref rec_status);
             Debug.Log(string.Format("-->语音读写中({0},{1})...", ep_status, rec_status));
             //if (ep_status == epStatus.MSP_EP_AFTER_SPEECH || ep_status == epStatus.MSP_EP_TIMEOUT)
             //{
@@ -353,6 +364,7 @@ public class VoiceManage {
     /// <returns></returns>
     static int registerCallback(string sessionID, msgProcCb msg, int param1, int param2, IntPtr info, IntPtr userData)
     {
+        Debug.Log(string.Format("唤醒返回状态{0}", msg));
         if (msgProcCb.MSP_IVW_MSG_ERROR == msg) //唤醒出错消息
         {
 
@@ -361,11 +373,37 @@ public class VoiceManage {
         else //唤醒成功消息
         {
             FlowManage.M2PMode(1);
-            mic.stop();
             Debug.Log(string.Format("唤醒成功({0})!", info));
         }
         return 0;
     }
 
-
+    /// <summary>
+    /// 将文件转为byte[]
+    /// </summary>
+    /// <param name="fileUrl"></param>
+    /// <returns></returns>
+    protected static byte[] GetFileData(string fileUrl)
+    {
+        FileStream fs = new FileStream(fileUrl, FileMode.Open, FileAccess.Read);
+        try
+        {
+            byte[] buffur = new byte[fs.Length];
+            fs.Read(buffur, 0, (int)fs.Length);
+            return buffur;
+        }
+        catch (Exception ex)
+        {
+            //MessageBoxHelper.ShowPrompt(ex.Message);
+            return null;
+        }
+        finally
+        {
+            if (fs != null)
+            {
+                //关闭资源
+                fs.Close();
+            }
+        }
+    }
 }
