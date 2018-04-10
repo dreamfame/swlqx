@@ -79,8 +79,7 @@ public class main : MonoBehaviour
         //语音唤醒测试
         if (Input.GetKeyUp(KeyCode.A))
         {
-            VoiceManage vm = new VoiceManage();
-            vm.VoiceWakeUp();
+            VoiceManage.VoiceWakeUp();
         }
         if (Input.GetKeyUp(KeyCode.S))
         {
@@ -88,7 +87,7 @@ public class main : MonoBehaviour
             vm.VoiceDistinguish();
         }
     }
-
+     
     /// <summary>
     /// 系统初始化
     /// </summary>

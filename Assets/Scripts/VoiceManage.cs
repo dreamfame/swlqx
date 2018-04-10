@@ -33,7 +33,7 @@ public class VoiceManage
 
     private class msp_login
     {
-        public static string APPID = "appid = 5ab8b014";
+        public static string APPID = "appid = 5ab8b014"; 
         public static string Account = "390378816@qq.com";
         public static string Passwd = "ai910125.0";
         public static string voice_cache = "voice_cache";
@@ -123,7 +123,7 @@ public class VoiceManage
     /// <summary>
     /// 语音唤醒
     /// </summary>
-    public void VoiceWakeUp()
+    public static void VoiceWakeUp()
     {
         try
         {
@@ -178,7 +178,7 @@ public class VoiceManage
     /// 语音唤醒方法
     /// </summary>
     /// <param name="sid"></param>
-    private void VoiceArousal(string sid)
+    private static void VoiceArousal(string sid)
     {
         string file = mic.startRecording("hx");
         if (file == string.Empty) { return; }
