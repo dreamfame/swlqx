@@ -14,34 +14,40 @@ public class Answer{
 
     public string title { get; set; }  //题目
 
-    public string answerA { get; set; }  // 选项A
-
-    public string answerB { get; set; }  // 选项B
-
-    public string answerC { get; set; }  // 选项C
-
     public string CorrectAnswer { get; set; } // 正确答案
+
+    public string Analyis { get; set; } //答案解析
 
     /// <summary>
     /// 加载xml文件内的题目信息
     /// </summary>
     /// <param name="type">题目类型</param>
     /// <returns>返回当前题目类型中的所有题目信息，为Answer对象集合</returns>
-    public static List<Answer> LoadQuestions(int type)
+    public static List<Answer> LoadQuestions(int category,int type)
     {
+        string path = "";
+        switch (category) 
+        {
+            case 1:
+                path = "Question/questions1.xml";
+                break;
+            case 2:
+                path = "Question/questions2.xml";
+                break;
+        }
         string t = "";
         switch (type)
         {
             case 1:
-                t = "选择";
+                t = "前半生";
                 break;
             case 2:
-                t = "问答";
+                t = "后半生";
                 break;
         }
         List<Answer> listAnswer = new List<Answer>();
         questionXml = new XmlDocument();
-        XmlUtil xmlUtil = new XmlUtil("Question/questions.xml", true);
+        XmlUtil xmlUtil = new XmlUtil(path, true);
         questionXml = xmlUtil.getXmlDocument();
         XmlNodeList xmlNodeList = questionXml.SelectSingleNode("data").ChildNodes;
         foreach (XmlElement xl1 in xmlNodeList)
@@ -53,24 +59,7 @@ public class Answer{
                 a.No = int.Parse(xl1.GetAttribute("题号"));
                 a.title = xl1.GetAttribute("题目");
                 a.CorrectAnswer = xl1.GetAttribute("答案");
-                if (xl1.HasChildNodes)
-                {
-                    foreach (XmlElement xl2 in xl1.ChildNodes)
-                    {
-                        if (xl2.GetAttribute("名称").Equals("A"))
-                        {
-                            a.answerA = xl2.GetAttribute("内容");
-                        }
-                        else if (xl2.GetAttribute("名称").Equals("B"))
-                        {
-                            a.answerB = xl2.GetAttribute("内容");
-                        }
-                        else if (xl2.GetAttribute("名称").Equals("C"))
-                        {
-                            a.answerC = xl2.GetAttribute("内容");
-                        }
-                    }
-                }
+                a.Analyis = xl1.GetAttribute("解析");
                 listAnswer.Add(a);
             }
         }

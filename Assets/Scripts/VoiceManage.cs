@@ -16,9 +16,26 @@ public class VoiceManage {
 
     public IntPtr session_ID;
 
+    public static string session_Id;
+
     private int i = 0;
 
     private string voice_path = "";
+
+    private static MicManage mic;
+
+    private static audioStatus audio_stat = audioStatus.MSP_AUDIO_SAMPLE_FIRST;
+
+    public static epStatus ep_status = epStatus.MSP_EP_NULL;
+    public static rsltStatus rec_status = rsltStatus.MSP_REC_STATUS_SUCCESS;
+
+    private class msp_login
+    {
+        public static string APPID = "appid = 5ab8b014";
+        public static string Account = "390378816@qq.com";
+        public static string Passwd = "ai910125.0";
+        public static string voice_cache = "voice_cache";
+    }
 
     /// <summary>
     /// 播放合成语音
@@ -189,5 +206,166 @@ public class VoiceManage {
         }
         byte[] bs = lb.ToArray();
         return Encoding.Default.GetString(lb.ToArray());
-    }  
+    }
+
+    /// <summary>
+    /// 语音唤醒
+    /// </summary>
+    public static void VoiceWakeUp() 
+    {
+        try
+        {
+            mic = new MicManage(Camera.main.GetComponent<AudioSource>());
+            Debug.Log(Environment.CurrentDirectory);
+            int retCode = MSC.MSPLogin(null, null, msp_login.APPID + ",engine_start = ivw,ivw_res_path =fo|res/ivw/wakeupresource.jet,work_dir = .");
+            if (retCode != (int)ErrorCode.MSP_SUCCESS) { Debug.Log("登陆失败!"); return; }
+            Debug.Log(string.Format("{0} 登陆成功,正在开启引擎..", DateTime.Now.Ticks));
+            session_Id = Ptr2Str(MSC.QIVWSessionBegin(string.Empty, "sst=wakeup,ivw_threshold=0:-20,ivw_res_path =fo|res/ivw/wakeupresource.jet,work_dir = .", ref retCode));
+            if (retCode != (int)ErrorCode.MSP_SUCCESS) { Debug.Log("开启失败!"); return; }
+            Debug.Log(string.Format("{1} 开启成功[{0}],正在注册..", session_Id, DateTime.Now.Ticks));
+            retCode = MSC.QIVWRegisterNotify(session_Id, registerCallback, new IntPtr());
+            if (retCode != (int)ErrorCode.MSP_SUCCESS) { Debug.Log("注册失败!"); return; }
+            Debug.Log(string.Format("{1} 注册成功,语音唤醒[{0}]正在初始化...", session_Id, DateTime.Now.Ticks));
+            //while (!mic_flag)
+            //{
+            mic.start();
+
+            //Thread.Sleep(5 * 1000);
+            if (mic.getData() == null)
+            {
+                Debug.LogError("未接受有效语音数据！");
+                return;
+            }
+            byte[] recRet = mic.getData();
+
+            Debug.Log(string.Format("{1} 音频长度[{0}]", (uint)mic.getData().Length, DateTime.Now.Ticks));
+            //AudioSource audio = GetComponent<AudioSource>();
+            //audio.clip.SetData(mic.getData())
+            int errCode = MSC.QIVWAudioWrite(session_Id, Byte2Ptr(mic.getData()), (uint)mic.getData().Length, audio_stat);
+            Debug.Log(string.Format("QIVWAudioWrite returned: {0}", errCode));
+            //}
+            MSC.QIVWSessionEnd(session_Id, string.Empty);
+        }
+        finally
+        {
+            MSC.MSPLogout();
+        }
+    }
+
+    /// <summary>
+    /// 语音识别
+    /// </summary>
+    public static void VoiceDistinguish() 
+    {
+        try
+        {
+            Debug.Log(string.Format("登陆移动语音终端..."));
+            int retCode = MSC.MSPLogin(null, null, msp_login.APPID);
+            Debug.Log(string.Format("-->移动语音终端登陆结果:retCode[{1}],login success:{0}\n", (retCode == (int)ErrorCode.MSP_SUCCESS), retCode));
+            if (retCode != (int)ErrorCode.MSP_SUCCESS) { Debug.Log("登陆失败!"); return; }
+            //生成语法ID
+            //string grammar_params = string.Format("engine_type = local, asr_res_path = {0}, grm_build_path = {1}", asr_res_path, grm_build_path);
+            //int grammar_ID = MSC.QISRBuildGrammar("bnf","",10,grammar_params,,);
+            //string session_params = string.Format("engine_type = {0}, asr_res_path = {1}, grm_build_path = {2}, local_grammar = {3}, result_type = json, result_encoding = UTF-8","local",asr_res_path,grm_build_path,grammar_ID);
+
+            string session_params = "sub=iat,ssm=1,auf=audio/L16;rate=16000,aue=speex,ent=sms16k,rst=plain";
+            session_Id = Ptr2Str(MSC.QISRSessionBegin(string.Empty, session_params, ref retCode));
+            Debug.Log(string.Format("-->开启一次语音识别[{0}]", session_Id));
+            retCode = MSC.QISRAudioWrite(session_Id, IntPtr.Zero, 0, audioStatus.MSP_AUDIO_SAMPLE_LAST, ref ep_status, ref rec_status);
+            Debug.Log(string.Format("-->语音读写中({0},{1})...", ep_status, rec_status));
+            //if (ep_status == epStatus.MSP_EP_AFTER_SPEECH || ep_status == epStatus.MSP_EP_TIMEOUT)
+            //{
+            int count = 0;
+            while (rec_status != rsltStatus.MSP_REC_STATUS_COMPLETE)
+            {
+
+                IntPtr p = MSC.QISRGetResult(session_Id, ref rec_status, 0, ref retCode);
+                if (retCode == (int)ErrorCode.MSP_SUCCESS)
+                {
+                    Debug.Log("已获取到音频信息,正在识别...");
+                    if (p != IntPtr.Zero)
+                    {
+                        Debug.Log(string.Format("-->语音信息:{0}", Ptr2Str(p)));
+                    }
+                    else
+                    {
+                        count++;
+                        Thread.Sleep(100);
+                        Debug.Log(string.Format("第{0}次抓取语音信息...", count));
+                    }
+                }
+                else
+                {
+                    Debug.Log("语音识别失败!");
+                    return;
+                }
+            }
+            if (count > 20)
+            {
+
+            }
+            else
+            {
+                MSC.QISRSessionEnd(session_Id, string.Empty);
+            }
+            //}
+        }
+        catch (Exception e)
+        {
+            Debug.Log(e.Message);
+        }
+        finally
+        {
+            MSC.MSPLogout();
+        }
+    }
+
+    /// <summary>
+    /// byte[]转指针
+    /// </summary>
+    /// <param name="bytes"></param>
+    /// <returns></returns>
+    public static IntPtr Byte2Ptr(byte[] bytes)
+    {
+        int size = bytes.Length;
+        IntPtr buffer = Marshal.AllocHGlobal(size);
+        try
+        {
+            Marshal.Copy(bytes, 0, buffer, size);
+            return buffer;
+        }
+        finally
+        {
+            Marshal.FreeHGlobal(buffer);
+        }
+    }
+
+
+    /// <summary>
+    /// 语音唤醒回调函数
+    /// </summary>
+    /// <param name="sessionID"></param>
+    /// <param name="msg"></param>
+    /// <param name="param1"></param>
+    /// <param name="param2"></param>
+    /// <param name="info"></param>
+    /// <param name="userData"></param>
+    /// <returns></returns>
+    static int registerCallback(string sessionID, msgProcCb msg, int param1, int param2, IntPtr info, IntPtr userData)
+    {
+        if (msgProcCb.MSP_IVW_MSG_ERROR == msg) //唤醒出错消息
+        {
+
+            Debug.Log(string.Format("{1} 唤醒失败({0})!", param1, DateTime.Now.Ticks));
+        }
+        else //唤醒成功消息
+        {
+            FlowManage.M2PMode(1);
+            mic.stop();
+            Debug.Log(string.Format("唤醒成功({0})!", info));
+        }
+        return 0;
+    }
+
+
 }

@@ -16,6 +16,8 @@ namespace Assets.Scripts
 
         private static Animation characterAnimation;//神父人物模型动画对象
 
+        public static int curNo;
+
         /// <summary>
         /// 进入待机状态
         /// </summary>
@@ -32,6 +34,27 @@ namespace Assets.Scripts
             else
             {
                 characterAnimation.Play(name);
+                VoiceManage.VoiceWakeUp();//调用语音唤醒接口
+            }
+        }
+
+        /// <summary>
+        /// 沙勿略问我模式
+        /// </summary>
+        /// <param name="no">题号</param>
+        public static void M2PMode(int no) 
+        {
+            curNo = no;
+            AskQuestion aq = new AskQuestion();
+            var temp = aq.GetQuestions();
+            if (temp == null)
+            {
+                Debug.Log("题库读取数据失败..");
+            }
+            else
+            {
+                Debug.Log(temp[no - 1].title);
+  
             }
         }
 	}

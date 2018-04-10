@@ -17,7 +17,7 @@ public class AskQuestion{
     public List<Answer> GetQuestions() 
     {
         TagList.Clear();
-        var listAnswers = Answer.LoadQuestions(1);
+        var listAnswers = Answer.LoadQuestions(1,1);
         if (listAnswers.Count == 0) return null;
         System.Random random = new System.Random();
         while (TagList.Distinct().ToList().Count < 3) 
