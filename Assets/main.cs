@@ -38,7 +38,6 @@ public class main : MonoBehaviour
         public static string APPID = "appid = 5ab8b014";
         public static string Account = "390378816@qq.com";
         public static string Passwd = "ai910125.0";
-        public static string voice_cache = "voice_cache";
     }
 
     void Start()
@@ -81,10 +80,16 @@ public class main : MonoBehaviour
         {
             VoiceManage.VoiceWakeUp();
         }
+        //语音识别测试
         if (Input.GetKeyUp(KeyCode.S))
         {
             VoiceManage vm = new VoiceManage();
             vm.VoiceDistinguish();
+        }
+        //文本语义测试
+        if (Input.GetKeyUp(KeyCode.D))
+        {
+            AIUI.HttpPost(AIUI.TEXT_SEMANTIC_API,"text="+Utils.Encode("后续这些传教者中，谁的影响力最大？"));
         }
     }
      

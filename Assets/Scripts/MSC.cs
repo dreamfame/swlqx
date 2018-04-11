@@ -307,6 +307,5 @@ namespace Assets.Scripts
         public static extern int QIVWAudioWrite(string sessionID, byte[] audioData,uint audioLen, audioStatus audioStatus);
         [DllImport("msc", CallingConvention = CallingConvention.Winapi)]
         public static extern int QIVWRegisterNotify(string sessionID, ivw_ntf_handler msgProcCb, IntPtr userData);
-
     }
 }
