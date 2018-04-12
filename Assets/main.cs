@@ -27,6 +27,10 @@ public class main : MonoBehaviour
 
     public bool isAnswer = false;
 
+    public static bool isFinishedCompose = false;
+
+    public static string ComposeWavPath = "";
+
     epStatus ep_status = epStatus.MSP_EP_NULL;
     rsltStatus rec_status = rsltStatus.MSP_REC_STATUS_SUCCESS;
 
@@ -48,11 +52,34 @@ public class main : MonoBehaviour
 
     void Update()
     {
+        if (isFinishedCompose && File.Exists(Application.dataPath + "/Resources/"+ComposeWavPath+".wav")) 
+        {
+            StartPlayClip();
+            isFinishedCompose = false;
+            ComposeWavPath = "";
+        }
+
+        /*
         if (isAnswer)
         {
+            AnswerResult ar = null;
+            VoiceManage vm = new VoiceManage();
             answer_time += Time.deltaTime;
             ///调用语音识别方法，将语音转换为文字内容，然后与答案匹配，根据匹配程度判断回答正误。
+            string voice_string = VoiceManage.VoiceDistinguish();
+            if (voice_string != string.Empty) 
+            {
+                ar = AIUI.HttpPost(AIUI.TEXT_SEMANTIC_API, "text=" + Utils.Encode(voice_string));
+            }
             ///正确则返回语音回答正确，错误则返回问题分析。无论正误，返回结果后都进入下一题。
+            if (ar != null && ar.code == "00000")
+            { 
+                vm.PlayVoice("你真棒！回答正确，答案是:" + ar.data.answer.text, "answer" + FlowManage.curNo, "Voice");
+            }
+            else 
+            {
+                vm.PlayVoice("很抱歉，回答错误，正确答案是:" + ar.data.answer.text, "answer" + FlowManage.curNo, "Voice");
+            }
             if (answer_time >= 20)
             {
                 ///如果20秒之内未作出回答视为错误，给出解析后进入下一题。
@@ -66,7 +93,7 @@ public class main : MonoBehaviour
             }
         }
         //语音合成测试
-        if (Input.GetMouseButtonDown(0))
+        /*if (Input.GetMouseButtonDown(0))
         {
             VoiceManage vm = new VoiceManage();
             string path = vm.PlayVoice("你好，我是沙勿略。很高兴见到你！", "welcome", "Assets/Resources/voice");
@@ -74,25 +101,21 @@ public class main : MonoBehaviour
             var aud = Camera.main.GetComponent<AudioSource>();
             aud.clip = ac;
             aud.Play();
-        }
+        }*/
+
         //语音唤醒测试
         if (Input.GetKeyUp(KeyCode.A))
         {
-            VoiceManage.VoiceWakeUp();
-        }
-        //语音识别测试
-        if (Input.GetKeyUp(KeyCode.S))
-        {
-            VoiceManage vm = new VoiceManage();
-            vm.VoiceDistinguish();
+            FlowManage.M2PMode(1);
         }
         //文本语义测试
         if (Input.GetKeyUp(KeyCode.D))
         {
-            AIUI.HttpPost(AIUI.TEXT_SEMANTIC_API,"text="+Utils.Encode("后续这些传教者中，谁的影响力最大？"));
+            string result = VoiceManage.VoiceDistinguish();
+            AIUI.HttpPost(AIUI.TEXT_SEMANTIC_API, "text=" + Utils.Encode(result));
         }
     }
-     
+
     /// <summary>
     /// 系统初始化
     /// </summary>
@@ -103,8 +126,15 @@ public class main : MonoBehaviour
             Debug.Log("加载人物模型失败");
             return;
         }
+        UIObject u = Camera.main.GetComponent<UIObject>();
+        if (u.M2P_Answer_Panel == null) 
+        {
+            Debug.Log("加载沙勿略问我界面失败");
+            return;
+        }
+        u.M2P_Answer_Panel.SetActive(false);
         CharacterModel.GetComponent<Animation>().Stop();
-        FlowManage.EnterStandBy(CharacterModel);
+        //FlowManage.EnterStandBy(CharacterModel);
     }
 
     public void CloseMovie()
@@ -116,4 +146,23 @@ public class main : MonoBehaviour
     {
         isAnswer = true;
     }
+
+    public void StartPlayClip() 
+    {
+        StartCoroutine(goPlay());
+    }
+
+    private IEnumerator goPlay()
+    {
+        string url = "file:///"+Environment.CurrentDirectory+"/Assets/Resources/"+ComposeWavPath+".wav";
+        WWW www = new WWW(url);
+        var ac = www.GetAudioClip(false);
+        var aud = Camera.main.GetComponent<AudioSource>();
+        aud.clip = ac;
+        yield return www;
+        if (aud.clip != null)
+        {
+            aud.Play();
+        }
+    } 
 }

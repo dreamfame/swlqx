@@ -12,6 +12,8 @@ namespace Assets.Scripts
     /// </summary>
 	public class FlowManage
 	{
+        private static UIObject u = Camera.main.GetComponent<UIObject>();
+
         private static GameObject characterModel;//神父人物模型对象
 
         private static Animation characterAnimation;//神父人物模型动画对象
@@ -44,6 +46,7 @@ namespace Assets.Scripts
         /// <param name="no">题号</param>
         public static void M2PMode(int no) 
         {
+            u.ShowM2PAnswerPanel();
             curNo = no;
             AskQuestion aq = new AskQuestion();
             var temp = aq.GetQuestions();
@@ -51,11 +54,22 @@ namespace Assets.Scripts
             {
                 Debug.Log("题库读取数据失败..");
             }
-            else
+            else//机器读出并在界面显示问题内容
             {
                 Debug.Log(temp[no - 1].title);
-  
+                VoiceManage vm = new VoiceManage();
+                vm.PlayVoice(temp[no - 1].title, "subject" + no,Application.dataPath+"/Resources/Voice");
+                u.M2P_Answer_Panel.transform.GetChild(0).gameObject.GetComponent<UILabel>().text = temp[no - 1].title;
+                
             }
+        }
+
+        /// <summary>
+        /// 我问沙勿略模式
+        /// </summary>
+        public static void P2MMode() 
+        {
+
         }
 	}
 }
