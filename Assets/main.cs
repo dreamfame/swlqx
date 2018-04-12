@@ -47,7 +47,7 @@ public class main : MonoBehaviour
     void Start()
     {
         mic = new MicManage(GetComponent<AudioSource>());
-        init();
+        //init();
     }
 
     void Update()
@@ -92,16 +92,19 @@ public class main : MonoBehaviour
                 }
             }
         }
+        */
         //语音合成测试
-        /*if (Input.GetMouseButtonDown(0))
+        if (Input.GetMouseButtonDown(0))
         {
+            Debug.Log("语音合成测试...");
             VoiceManage vm = new VoiceManage();
-            string path = vm.PlayVoice("你好，我是沙勿略。很高兴见到你！", "welcome", "Assets/Resources/voice");
-            var ac = UnityEditor.AssetDatabase.LoadAssetAtPath(path, typeof(AudioClip)) as AudioClip;
+            //vm.PlayVoice("你好我是沙勿略很高兴见到你", "welcome", "Assets/Resources/Voice");
+            vm.PlayVoice("潘基文借汉语点赞中国新一轮改革开放:联通孤岛,同舟共济", "syn", "Assets/Resources/Voice");
+            var ac = UnityEditor.AssetDatabase.LoadAssetAtPath("Assets/Resources/Voice/syn.wav", typeof(AudioClip)) as AudioClip;
             var aud = Camera.main.GetComponent<AudioSource>();
             aud.clip = ac;
             aud.Play();
-        }*/
+        }
 
         //语音唤醒测试
         if (Input.GetKeyUp(KeyCode.A))

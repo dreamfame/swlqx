@@ -22,3 +22,6 @@ G:\qx\QX\Temp\bin\Debug\UnityEngine.Analytics.xml
 G:\qx\QX\obj\Debug\Assembly-CSharp.dll
 G:\qx\QX\obj\Debug\Assembly-CSharp.pdb
 G:\qx\QX\obj\Debug\Assembly-CSharp.csprojResolveAssemblyReference.cache
+F:\git_repos\QX\obj\Debug\Assembly-CSharp.csprojResolveAssemblyReference.cache
+F:\git_repos\QX\obj\Debug\Assembly-CSharp.csproj.CoreCompileInputs.cache
+F:\git_repos\QX\obj\Debug\Assembly-CSharp.pdb

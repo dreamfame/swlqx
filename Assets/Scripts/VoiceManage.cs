@@ -15,10 +15,6 @@ public class VoiceManage
 
     public static int ret = 0;
 
-    public static IntPtr session_ID;
-
-    private static string voice_path = "";
-
     private static MicManage mic = new MicManage(Camera.main.GetComponent<AudioSource>());
 
     private static audioStatus audio_stat = audioStatus.MSP_AUDIO_SAMPLE_FIRST;
@@ -37,87 +33,30 @@ public class VoiceManage
         public static string APPID = "appid = 5ab8b014";
         public static string Account = "390378816@qq.com";
         public static string Passwd = "ai910125.0";
-        public static string voice_cache = "voice_cache";
     }
 
     /// <summary>
-    /// 播放合成语音
+    /// 合成语音
     /// </summary>
     /// <param name="content">语音内容</param>
     /// <param name="name">文件名</param>
-    public void PlayVoice(string content, string name, string path)
+    public void PlayVoice(string text, string name, string path)
     {
         try
         {
             ///APPID请勿随意改动  
             string login_configs = "appid =5ab8b014 ";//登录参数,自己注册后获取的appid  
-            string text = content;//待合成的文本  
-            string filename = name + ".wav"; //合成的语音文件  
-            uint audio_len = 0;
-            voice_path = path + "/" + filename;
-            SynthStatus synth_status = SynthStatus.MSP_TTS_FLAG_STILL_HAVE_DATA;
             ret = MSC.MSPLogin(string.Empty, string.Empty, login_configs);//第一个参数为用户名，第二个参数为密码，第三个参数是登录参数，用户名和密码需要在http://open.voicecloud.cn  
-            //MSPLogin方法返回失败  
-            if (ret != (int)ErrorCode.MSP_SUCCESS)
-            {
-                return;
-            }
-            //string parameter = "engine_type = local, voice_name=xiaoyan, tts_res_path =fo|res\\tts\\xiaoyan.jet;fo|res\\tts\\common.jet, sample_rate = 16000";  
-            string _params = "ssm=1,ent=sms16k,vcn=xiaoyan,spd=medium,aue=speex-wb;7,vol=x-loud,auf=audio/L16;rate=16000";
-            string @params = "engine_type = cloud,voice_name=xiaoyan,speed=50,volume=50,pitch=50,text_encoding = UTF8,background_sound=1,sample_rate = 16000";
-            session_ID = MSC.QTTSSessionBegin(@params, ref ret);
-            //QTTSSessionBegin方法返回失败  
-            if (ret != (int)ErrorCode.MSP_SUCCESS)
-            {
-                return;
-            }
-            ret = MSC.QTTSTextPut(Ptr2Str(session_ID), text, (uint)Encoding.Default.GetByteCount(text), string.Empty);
-            //QTTSTextPut方法返回失败  
-            if (ret != (int)ErrorCode.MSP_SUCCESS)
-            {
-                return;
-            }
-
-            MemoryStream memoryStream = new MemoryStream();
-            memoryStream.Write(new byte[44], 0, 44);
-            while (true)
-            {
-                IntPtr source = MSC.QTTSAudioGet(Ptr2Str(session_ID), ref audio_len, ref synth_status, ref ret);
-                byte[] array = new byte[(int)audio_len];
-                if (audio_len > 0)
-                {
-                    Marshal.Copy(source, array, 0, (int)audio_len);
-                }
-                memoryStream.Write(array, 0, array.Length);
-                Thread.Sleep(1000);
-                if (synth_status == SynthStatus.MSP_TTS_FLAG_DATA_END || ret != 0)
-                    break;
-            }
-            WAVE_Header wave_Header = getWave_Header((int)memoryStream.Length - 44);
-            byte[] array2 = this.StructToBytes(wave_Header);
-            memoryStream.Position = 0L;
-            memoryStream.Write(array2, 0, array2.Length);
-            memoryStream.Position = 0L;
-            if (filename != null)
-            {
-                FileStream fileStream = new FileStream(path + "/" + filename, FileMode.Create, FileAccess.Write);
-                memoryStream.WriteTo(fileStream);
-                memoryStream.Close();
-                fileStream.Close();
-                main.isFinishedCompose = true;
-                main.ComposeWavPath = "Voice/" + name;
-            }
-
-        }
-        catch (Exception)
-        {
-
+            if (ret != (int)ErrorCode.MSP_SUCCESS) { Debug.Log("登陆失败!" + ret); return; }
+            //string @params = "engine_type = cloud,voice_name=nannan,speed=50,volume=50,pitch=50,text_encoding =UTF8,background_sound=1,sample_rate=16000";
+            string @params = "engine_type = local, voice_name = xiaoyan, text_encoding = UTF8, tts_res_path = fo|res\\tts\\xiaoyan.jet;fo|res\\tts\\common.jet, sample_rate = 16000, speed = 50, volume = 50, pitch = 50, rdn = 2";
+            string sid = Ptr2Str(MSC.QTTSSessionBegin(@params, ref ret));
+            SpeechSynthesis(sid,text, name,path);
+            MSC.QTTSSessionEnd(sid, string.Empty);
         }
         finally
         {
-
-            ret = MSC.QTTSSessionEnd(Ptr2Str(session_ID), "");
-            ret = MSC.MSPLogout();//退出登录
+            MSC.MSPLogout();//退出登录
         }
     }
 
@@ -132,7 +71,7 @@ public class VoiceManage
             int retCode = MSC.MSPLogin(null, null, msp_login.APPID + ",engine_start = ivw,ivw_res_path =fo|res/ivw/wakeupresource.jet,work_dir = .");
             if (retCode != (int)ErrorCode.MSP_SUCCESS) { Debug.Log("登陆失败!"); return; }
             Debug.Log(string.Format("{0} 登陆成功,正在开启引擎..", DateTime.Now.Ticks));
-            string sid = Ptr2Str(MSC.QIVWSessionBegin(string.Empty, "sst=wakeup,ivw_threshold=0:-20,ivw_res_path =fo|res/ivw/wakeupresource.jet,work_dir = .", ref retCode));
+            string sid = Ptr2Str(MSC.QIVWSessionBegin(string.Empty, "sst=wakeup,ivw_threshold=0:-20", ref retCode));
             if (retCode != (int)ErrorCode.MSP_SUCCESS) { Debug.Log("开启失败!"); return; }
             Debug.Log(string.Format("{1} 开启成功[{0}],正在注册..", sid, DateTime.Now.Ticks));
             retCode = MSC.QIVWRegisterNotify(sid, registerCallback, new IntPtr());
@@ -276,6 +215,49 @@ public class VoiceManage
         }
         Debug.Log(string.Format("-->语音信息:{0}", rec_result));
         return rec_result;
+    }
+    /// <summary>
+    /// 语音合成
+    /// </summary>
+    /// <param name="sid"></param>
+    /// <returns></returns>
+    private void SpeechSynthesis(string sid, string text, string name, string path)
+    {
+        string filename = name+".wav"; //合成的语音文件  
+        uint audio_len = 0;
+        SynthStatus synth_status = SynthStatus.MSP_TTS_FLAG_STILL_HAVE_DATA;
+        Debug.Log(string.Format("文本长度:{0},{1}", Encoding.Default.GetByteCount(text), text.Length));
+        ret = MSC.QTTSTextPut(sid, text, (uint)Encoding.Default.GetByteCount(text), string.Empty);
+        if (ret != (int)ErrorCode.MSP_SUCCESS) { Debug.Log("写入文本失败!" + ret); return; }
+        MemoryStream memoryStream = new MemoryStream();
+        memoryStream.Write(new byte[44], 0, 44);
+        while (synth_status != SynthStatus.MSP_TTS_FLAG_DATA_END)
+        {
+            IntPtr source = MSC.QTTSAudioGet(sid, ref audio_len, ref synth_status, ref ret);
+            if (ret != (int)ErrorCode.MSP_SUCCESS) { Debug.Log("合成失败!" + ret); return; }
+            byte[] array = new byte[(int)audio_len];
+            if (audio_len > 0)
+            {
+                Marshal.Copy(source, array, 0, (int)audio_len);
+            }
+            memoryStream.Write(array, 0, array.Length);
+            Thread.Sleep(200);
+        }
+
+        WAVE_Header wave_Header = getWave_Header((int)memoryStream.Length - 44);
+        byte[] array2 = this.StructToBytes(wave_Header);
+        memoryStream.Position = 0L;
+        memoryStream.Write(array2, 0, array2.Length);
+        memoryStream.Position = 0L;
+        if (filename != null)
+        {
+            FileStream fileStream = new FileStream(path + "/" + filename, FileMode.Create, FileAccess.Write);
+            memoryStream.WriteTo(fileStream);
+            memoryStream.Close();
+            fileStream.Close();
+            main.isFinishedCompose = true;
+            main.ComposeWavPath = "Voice/"+name;
+        }
     }
 
     #region 通用方法
