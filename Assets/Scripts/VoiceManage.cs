@@ -42,20 +42,21 @@ public class VoiceManage
     /// <param name="name">文件名</param>
     public void PlayVoice(string text, string name, string path)
     {
+        string sid = string.Empty;
         try
         {
             ///APPID请勿随意改动  
-            string login_configs = "appid =5ab8b014 ";//登录参数,自己注册后获取的appid  
+            string login_configs = "appid =5ab8b014, work_dir = .";//登录参数,自己注册后获取的appid  
             ret = MSC.MSPLogin(string.Empty, string.Empty, login_configs);//第一个参数为用户名，第二个参数为密码，第三个参数是登录参数，用户名和密码需要在http://open.voicecloud.cn  
             if (ret != (int)ErrorCode.MSP_SUCCESS) { Debug.Log("登陆失败!" + ret); return; }
             //string @params = "engine_type = cloud,voice_name=nannan,speed=50,volume=50,pitch=50,text_encoding =UTF8,background_sound=1,sample_rate=16000";
             string @params = "engine_type = local, voice_name = xiaoyan, text_encoding = UTF8, tts_res_path = fo|res\\tts\\xiaoyan.jet;fo|res\\tts\\common.jet, sample_rate = 16000, speed = 50, volume = 50, pitch = 50, rdn = 2";
-            string sid = Ptr2Str(MSC.QTTSSessionBegin(@params, ref ret));
+            sid = Ptr2Str(MSC.QTTSSessionBegin(@params, ref ret));
             SpeechSynthesis(sid,text, name,path);
-            MSC.QTTSSessionEnd(sid, string.Empty);
         }
         finally
         {
+            MSC.QTTSSessionEnd(sid, string.Empty);
             MSC.MSPLogout();//退出登录
         }
     }
@@ -225,12 +226,11 @@ public class VoiceManage
     {
         string filename = name+".wav"; //合成的语音文件  
         uint audio_len = 0;
+        uint audio_total_len = 0;
         SynthStatus synth_status = SynthStatus.MSP_TTS_FLAG_STILL_HAVE_DATA;
-        Debug.Log(string.Format("文本长度:{0},{1}", Encoding.Default.GetByteCount(text), text.Length));
-        ret = MSC.QTTSTextPut(sid, text, (uint)Encoding.Default.GetByteCount(text), string.Empty);
+        ret = MSC.QTTSTextPut(sid, text, (uint)Encoding.UTF8.GetByteCount(text), string.Empty);
         if (ret != (int)ErrorCode.MSP_SUCCESS) { Debug.Log("写入文本失败!" + ret); return; }
         MemoryStream memoryStream = new MemoryStream();
-        memoryStream.Write(new byte[44], 0, 44);
         while (synth_status != SynthStatus.MSP_TTS_FLAG_DATA_END)
         {
             IntPtr source = MSC.QTTSAudioGet(sid, ref audio_len, ref synth_status, ref ret);
@@ -239,16 +239,19 @@ public class VoiceManage
             if (audio_len > 0)
             {
                 Marshal.Copy(source, array, 0, (int)audio_len);
+                memoryStream.Write(array, 0, array.Length);
+                audio_total_len = audio_total_len + audio_len;
             }
-            memoryStream.Write(array, 0, array.Length);
-            Thread.Sleep(200);
+            Thread.Sleep(100);
         }
-
-        WAVE_Header wave_Header = getWave_Header((int)memoryStream.Length - 44);
-        byte[] array2 = this.StructToBytes(wave_Header);
-        memoryStream.Position = 0L;
-        memoryStream.Write(array2, 0, array2.Length);
-        memoryStream.Position = 0L;
+        //Debug.Log(string.Format("音频长度:byte[{0}],memoryStream[{1}]", audio_total_len, memoryStream.Length));
+        //添加音频头,否则无法播放
+        //WAVE_Header wave_Header = getWave_Header((int)memoryStream.Length);
+        WAVE_Header wave_Header = getWave_Header((int)(audio_total_len+44));
+        byte[] audio_header = StructToBytes(wave_Header);
+        memoryStream.Position = 0;
+        memoryStream.Write(audio_header, 0, audio_header.Length);
+        memoryStream.Position = 0;
         if (filename != null)
         {
             FileStream fileStream = new FileStream(path + "/" + filename, FileMode.Create, FileAccess.Write);
@@ -295,7 +298,7 @@ public class VoiceManage
         return new WAVE_Header
         {
             RIFF_ID = 1179011410,
-            File_Size = data_len + 36,
+            File_Size = data_len -8,
             RIFF_Type = 1163280727,
             FMT_ID = 544501094,
             FMT_Size = 16,
@@ -306,12 +309,12 @@ public class VoiceManage
             BlockAlign = 2,
             BitsPerSample = 16,
             DATA_ID = 1635017060,
-            DATA_Size = data_len
+            DATA_Size = data_len-44
         };
     }
 
     /// <summary>  
-    /// 语音音频头  
+    /// wav音频头  
     /// </summary>  
     private struct WAVE_Header
     {
