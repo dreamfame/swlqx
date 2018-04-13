@@ -36,7 +36,7 @@ namespace Assets.Scripts
             else
             {
                 characterAnimation.Play(name);
-                VoiceManage.VoiceWakeUp();//调用语音唤醒接口
+                //VoiceManage.VoiceWakeUp();//调用语音唤醒接口
             }
         }
 
@@ -60,7 +60,6 @@ namespace Assets.Scripts
                 VoiceManage vm = new VoiceManage();
                 vm.PlayVoice(temp[no - 1].title, "subject" + no,Application.dataPath+"/Resources/Voice");
                 u.M2P_Answer_Panel.transform.GetChild(0).gameObject.GetComponent<UILabel>().text = temp[no - 1].title;
-                
             }
         }
 

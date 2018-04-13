@@ -19,14 +19,21 @@ public class AskQuestion{
         TagList.Clear();
         var listAnswers = Answer.LoadQuestions(1,1);
         if (listAnswers.Count == 0) return null;
-        System.Random random = new System.Random();
-        while (TagList.Distinct().ToList().Count < 3) 
+        if (listAnswers.Count <= 3)
         {
-            int index = random.Next(0, listAnswers.Count-1);
-            TagList.Add(index);
-            flag++;
+            return GetQuestionsByNo(listAnswers, null);
         }
-        return GetQuestionsByNo(listAnswers,TagList.Distinct().ToList());
+        else
+        {
+            System.Random random = new System.Random();
+            while (TagList.Distinct().ToList().Count < 3)
+            {
+                int index = random.Next(0, listAnswers.Count - 1);
+                TagList.Add(index);
+                flag++;
+            }
+            return GetQuestionsByNo(listAnswers, TagList.Distinct().ToList());
+        }
     }
 
     /// <summary>
@@ -35,12 +42,19 @@ public class AskQuestion{
     /// <returns></returns>
     public List<Answer> GetQuestionsByNo(List<Answer> answers,List<int> nolist) 
     {
-        List<Answer> newAnswers = new List<Answer>();
-        if (nolist.Count == 0) return null;
-        foreach (var t in nolist) 
+        if (nolist == null)
         {
-            newAnswers.Add(answers[t]);
+            return answers; 
         }
-        return newAnswers;
+        else
+        {
+            List<Answer> newAnswers = new List<Answer>();
+            if (nolist.Count == 0) return null;
+            foreach (var t in nolist)
+            {
+                newAnswers.Add(answers[t]);
+            }
+            return newAnswers;
+        }
     }
 }

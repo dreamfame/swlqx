@@ -9,6 +9,8 @@ using System.IO;
 using System.Threading;
 using Assets.Scripts;
 using UnityEngine;
+using NAudio;
+using NAudio.Wave;
 
 public class VoiceManage
 {
@@ -28,6 +30,10 @@ public class VoiceManage
 
     private static bool isWakeUp = false;
 
+    public static IWavePlayer waveOutDevice;
+
+    public static AudioFileReader audioFileReader; 
+
     private class msp_login
     {
         public static string APPID = "appid = 5ab8b014";
@@ -38,8 +44,9 @@ public class VoiceManage
     /// <summary>
     /// 合成语音
     /// </summary>
-    /// <param name="content">语音内容</param>
+    /// <param name="text">语音内容</param>
     /// <param name="name">文件名</param>
+    /// <param name="path">音频存放地址</param>
     public void PlayVoice(string text, string name, string path)
     {
         string sid = string.Empty;
@@ -257,8 +264,10 @@ public class VoiceManage
             memoryStream.WriteTo(fileStream);
             memoryStream.Close();
             fileStream.Close();
-            main.isFinishedCompose = true;
-            main.ComposeWavPath = "Voice/"+name;
+            waveOutDevice = new WaveOut();
+            audioFileReader = new AudioFileReader(Application.dataPath + "/Resources/Voice/" + filename);
+            waveOutDevice.Init(audioFileReader);
+            waveOutDevice.Play();  
         }
     }
 
