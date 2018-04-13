@@ -60,6 +60,7 @@ namespace Assets.Scripts
                 VoiceManage vm = new VoiceManage();
                 vm.PlayVoice(temp[no - 1].title, "subject" + no,Application.dataPath+"/Resources/Voice");
                 u.M2P_Answer_Panel.transform.GetChild(0).gameObject.GetComponent<UILabel>().text = temp[no - 1].title;
+                Camera.main.GetComponent<main_test>().isAnswer = true;
             }
         }
 
@@ -68,7 +69,7 @@ namespace Assets.Scripts
         /// </summary>
         public static void P2MMode() 
         {
-
+            Debug.Log("进入我问沙勿略模式");
         }
 	}
 }

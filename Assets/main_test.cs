@@ -28,9 +28,33 @@ public class main_test : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
+        if (Input.GetMouseButtonDown(2)) 
+        {
+            NAudioRecorder nar = new NAudioRecorder();
+            nar.StartRec();
+        }
         if (Input.GetMouseButtonDown(1)) 
         {
             FlowManage.M2PMode(1);
+        }
+        if (isAnswer) 
+        {
+            answer_time += Time.deltaTime;
+            if (answer_time >= 20) 
+            {
+                int questionNo = FlowManage.curNo;
+                questionNo++;
+                if (questionNo <= 3)
+                {
+                    answer_time = 0f;
+                    isAnswer = false;
+                    FlowManage.M2PMode(questionNo);
+                }
+                else 
+                {
+                    FlowManage.P2MMode();
+                }
+            }
         }
 	}
 
@@ -57,6 +81,8 @@ public class main_test : MonoBehaviour {
 
     void OnApplicationQuit()
     {
+        NAudioRecorder nar = new NAudioRecorder();
+        nar.StopRec();
         if (VoiceManage.waveOutDevice != null)
         {
             VoiceManage.waveOutDevice.Stop();

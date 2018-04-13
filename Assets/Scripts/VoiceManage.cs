@@ -19,6 +19,8 @@ public class VoiceManage
 
     private static MicManage mic = new MicManage(Camera.main.GetComponent<AudioSource>());
 
+    private static NAudioRecorder nar = new NAudioRecorder();
+
     private static audioStatus audio_stat = audioStatus.MSP_AUDIO_SAMPLE_FIRST;
 
     public static epStatus ep_status = epStatus.MSP_EP_NULL;
