@@ -246,7 +246,7 @@ public class VoiceManage
         }
         //Debug.Log(string.Format("音频长度:byte[{0}],memoryStream[{1}]", audio_total_len, memoryStream.Length));
         //添加音频头,否则无法播放
-        WAVE_Header wave_Header = getWave_Header((int)memoryStream.Length);
+        WAVE_Header wave_Header = getWave_Header((int)memoryStream.Length+44);
         byte[] audio_header = StructToBytes(wave_Header);
         memoryStream.Position = 0;
         memoryStream.Write(audio_header, 0, audio_header.Length);
