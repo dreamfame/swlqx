@@ -40,9 +40,9 @@ namespace Assets.Scripts
             myResponseStream.Close();
             Debug.Log(retString);
         }
-        public static AnswerResult HttpPost(string url,string url_params)
+        public static string HttpPost(string url,string url_params)
         {
-            AnswerResult ar = null;
+
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(AIUI_BASE_URL+url);
             CurTime = Utils.CurrentTimeMillis();
             Param = Utils.Encode("{\"userid\":\"test001\",\"scene\":\"main\"}");
@@ -67,19 +67,7 @@ namespace Assets.Scripts
             }
             StreamReader reader = new StreamReader(response.GetResponseStream(), Encoding.GetEncoding(encoding));
             string retString = reader.ReadToEnd();
-            if (retString != "")
-            {
-                ar = JsonMapper.ToObject<AnswerResult>(retString);
-                if (ar.data.answer != null)
-                {
-                    Debug.Log(ar.data.answer.text);
-                }
-                else 
-                {
-                    Debug.Log("抱歉我还不知道这道问题的答案");
-                }
-            }
-            return ar;
+            return retString;
         }
 
         

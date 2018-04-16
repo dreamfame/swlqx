@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using NAudio;
 using NAudio.Wave;
+using UnityEngine;
 
 namespace Assets.Scripts
 {
@@ -32,10 +33,11 @@ namespace Assets.Scripts
         /// <summary>
         /// 停止录音
         /// </summary>
-        public void StopRec()
+        public string StopRec()
         {
             waveSource.StopRecording();
-
+            string result = VoiceManage.VoiceDistinguish();
+            string stringResult = AIUI.HttpPost(AIUI.TEXT_SEMANTIC_API, "text=" + Utils.Encode(result));
             // Close Wave(Not needed under synchronous situation)
             if (waveSource != null)
             {
@@ -48,6 +50,7 @@ namespace Assets.Scripts
                 waveFile.Dispose();
                 waveFile = null;
             }
+            return stringResult;
         }
 
         /// <summary>

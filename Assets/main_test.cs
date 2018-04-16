@@ -3,6 +3,7 @@ using System.Collections;
 using Assets.Scripts;
 using NAudio;
 using NAudio.Wave;
+using Assets.Scripts.SimHash;
 
 public class main_test : MonoBehaviour {
 
@@ -40,20 +41,27 @@ public class main_test : MonoBehaviour {
         if (isAnswer) 
         {
             answer_time += Time.deltaTime;
-            if (answer_time >= 20) 
+            if (answer_time >= 5) 
             {
-                int questionNo = FlowManage.curNo;
+                FlowManage.StopAnswer();
+                answer_time = 0f;
+                isAnswer = false;
+                /*int questionNo = FlowManage.curNo;
                 questionNo++;
                 if (questionNo <= 3)
                 {
+                    FlowManage.StopAnswer();
                     answer_time = 0f;
                     isAnswer = false;
                     FlowManage.M2PMode(questionNo);
                 }
-                else 
+                else
                 {
+                    answer_time = 0f;
+                    isAnswer = false;
+                    FlowManage.StopAnswer();
                     FlowManage.P2MMode();
-                }
+                }*/
             }
         }
 	}
@@ -82,7 +90,10 @@ public class main_test : MonoBehaviour {
     void OnApplicationQuit()
     {
         NAudioRecorder nar = new NAudioRecorder();
-        nar.StopRec();
+        if (nar.waveSource != null)
+        {
+            nar.StopRec();
+        }
         if (VoiceManage.waveOutDevice != null)
         {
             VoiceManage.waveOutDevice.Stop();
