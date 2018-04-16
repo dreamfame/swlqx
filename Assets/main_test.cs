@@ -21,6 +21,8 @@ public class main_test : MonoBehaviour {
 
     MicManage mic;
 
+    NAudioRecorder nar = new NAudioRecorder();
+
 	// Use this for initialization
 	void Start () {
         mic = new MicManage(GetComponent<AudioSource>());
@@ -30,9 +32,12 @@ public class main_test : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
         if (Input.GetMouseButtonDown(2)) 
-        {
-            NAudioRecorder nar = new NAudioRecorder();
+        {         
             nar.StartRec();
+        }
+        if (Input.GetMouseButtonUp(2)) 
+        {
+            nar.StopRec();
         }
         if (Input.GetMouseButtonDown(1)) 
         {
@@ -41,12 +46,9 @@ public class main_test : MonoBehaviour {
         if (isAnswer) 
         {
             answer_time += Time.deltaTime;
-            if (answer_time >= 5) 
+            if (answer_time >= 10) 
             {
-                FlowManage.StopAnswer();
-                answer_time = 0f;
-                isAnswer = false;
-                /*int questionNo = FlowManage.curNo;
+                int questionNo = FlowManage.curNo;
                 questionNo++;
                 if (questionNo <= 3)
                 {
@@ -61,7 +63,7 @@ public class main_test : MonoBehaviour {
                     isAnswer = false;
                     FlowManage.StopAnswer();
                     FlowManage.P2MMode();
-                }*/
+                }
             }
         }
 	}

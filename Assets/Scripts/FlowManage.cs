@@ -90,35 +90,23 @@ namespace Assets.Scripts
                 string retString = nar.StopRec();
                 if (retString != "")
                 {
-                    AnswerResult ar = JsonMapper.ToObject<AnswerResult>(retString);
-                    if (ar == null || ar.data == null)
+                    string HayStack = retString;
+                    string Needle = tempAnswer[curNo - 1].CorrectAnswer;
+                    IAnalyser analyser = new SimHashAnalyser();
+                    var likeness = analyser.GetLikenessValue(Needle, HayStack);
+                    Debug.Log("相似度为：" + likeness * 100);
+                    if ((likeness * 100) > 50)
                     {
-                        Debug.Log("抱歉，您刚才说了什么，我没有听清");
+                        Debug.Log("回答正确");
                     }
                     else
                     {
-                        if (ar.data.answer != null)
-                        {
-                            Debug.Log(ar.data.answer.text);
-                            string HayStack = "德哈所";
-                            string Needle = tempAnswer[curNo - 1].CorrectAnswer;
-                            IAnalyser analyser = new SimHashAnalyser();
-                            var likeness = analyser.GetLikenessValue(Needle, HayStack);
-                            Debug.Log("相似度为：" + likeness*100);
-                            if ((likeness * 100) > 50)
-                            {
-                                Debug.Log("回答正确");
-                            }
-                            else 
-                            {
-                                Debug.Log("回答错误");
-                            }
-                        }
-                        else
-                        {
-                            Debug.Log("抱歉我还不知道这道问题的答案");
-                        }
+                        Debug.Log("回答错误");
                     }
+                }
+                else
+                {
+                    Debug.Log("抱歉,您说了什么，我没有听清");
                 }
             }
         }

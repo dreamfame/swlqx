@@ -36,8 +36,6 @@ namespace Assets.Scripts
         public string StopRec()
         {
             waveSource.StopRecording();
-            string result = VoiceManage.VoiceDistinguish();
-            string stringResult = AIUI.HttpPost(AIUI.TEXT_SEMANTIC_API, "text=" + Utils.Encode(result));
             // Close Wave(Not needed under synchronous situation)
             if (waveSource != null)
             {
@@ -50,7 +48,8 @@ namespace Assets.Scripts
                 waveFile.Dispose();
                 waveFile = null;
             }
-            return stringResult;
+            string result = VoiceManage.VoiceDistinguish();
+            return result;
         }
 
         /// <summary>
