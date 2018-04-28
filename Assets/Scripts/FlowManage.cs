@@ -12,7 +12,7 @@ namespace Assets.Scripts
     /// <summary>
     /// 流程管理类，管理整个项目流程。
     /// </summary>
-	public class FlowManage
+	public class FlowManage:MonoBehaviour
 	{
         private static UIObject u = Camera.main.GetComponent<UIObject>();
 
@@ -25,6 +25,8 @@ namespace Assets.Scripts
         public static int curNo;
 
         private static List<Answer> tempAnswer = new List<Answer>();
+
+        private static main_test mt = Camera.main.GetComponent<main_test>();
 
         /// <summary>
         /// 进入待机状态
@@ -42,6 +44,8 @@ namespace Assets.Scripts
             else
             {
                 characterAnimation.Play(name);
+                AskQuestion aq = new AskQuestion();
+                tempAnswer = aq.GetQuestions();
                 //VoiceManage.VoiceWakeUp();//调用语音唤醒接口
             }
         }
@@ -54,21 +58,28 @@ namespace Assets.Scripts
         {
             u.ShowM2PAnswerPanel();
             curNo = no;
-            AskQuestion aq = new AskQuestion();
-            tempAnswer = aq.GetQuestions();
             if (tempAnswer == null)
             {
                 Debug.Log("题库读取数据失败..");
             }
             else//机器读出并在界面显示问题内容
             {
-                Debug.Log(tempAnswer[no - 1].title);
                 VoiceManage vm = new VoiceManage();
                 vm.PlayVoice(tempAnswer[no - 1].title, "subject" + no,Application.dataPath+"/Resources/Voice");
                 u.M2P_Answer_Panel.transform.GetChild(0).gameObject.GetComponent<UILabel>().text = tempAnswer[no - 1].title;
-                Camera.main.GetComponent<main_test>().isAnswer = true;
-                nar.StartRec();
+                u.M2P_Answer_Panel.transform.GetChild(1).gameObject.GetComponent<UILabel>().text = "A."+tempAnswer[no - 1].answerA;
+                u.M2P_Answer_Panel.transform.GetChild(2).gameObject.GetComponent<UILabel>().text = "B."+tempAnswer[no - 1].answerB;
+                u.M2P_Answer_Panel.transform.GetChild(3).gameObject.GetComponent<UILabel>().text = "C."+tempAnswer[no - 1].answerC;
             }
+        }
+
+        /// <summary>
+        /// 开始用户答题
+        /// </summary>
+        public static void StartUserAnswer() 
+        {
+            mt.isAnswer = true;
+            nar.StartRec();
         }
 
         /// <summary>
@@ -76,7 +87,11 @@ namespace Assets.Scripts
         /// </summary>
         public static void P2MMode() 
         {
+            u.HideM2PAnswerPanel();
+            u.ShowP2MAskPanel();
             Debug.Log("进入我问沙勿略模式");
+            //nar.StartRec();
+            
         }
 
         /// <summary>

@@ -14,6 +14,12 @@ public class Answer{
 
     public string title { get; set; }  //题目
 
+    public string answerA { get; set; }  // 选项A
+
+    public string answerB { get; set; }  // 选项B
+
+    public string answerC { get; set; }  // 选项C
+
     public string CorrectAnswer { get; set; } // 正确答案
 
     public string Analyis { get; set; } //答案解析
@@ -60,6 +66,24 @@ public class Answer{
                 a.title = xl1.GetAttribute("题目");
                 a.CorrectAnswer = xl1.GetAttribute("答案");
                 a.Analyis = xl1.GetAttribute("解析");
+                if (xl1.HasChildNodes)
+                {
+                    foreach (XmlElement xl2 in xl1.ChildNodes)
+                    {
+                        if (xl2.GetAttribute("名称").Equals("A"))
+                        {
+                            a.answerA = xl2.GetAttribute("内容");
+                        }
+                        else if (xl2.GetAttribute("名称").Equals("B"))
+                        {
+                            a.answerB = xl2.GetAttribute("内容");
+                        }
+                        else if (xl2.GetAttribute("名称").Equals("C"))
+                        {
+                            a.answerC = xl2.GetAttribute("内容");
+                        }
+                    }
+                }
                 listAnswer.Add(a);
             }
         }

@@ -267,10 +267,26 @@ public class VoiceManage
             memoryStream.Close();
             fileStream.Close();
             waveOutDevice = new WaveOut();
+            waveOutDevice.PlaybackStopped += waveOutDevice_PlaybackStopped; 
             audioFileReader = new AudioFileReader(Application.dataPath + "/Resources/Voice/" + filename);
             waveOutDevice.Init(audioFileReader);
             waveOutDevice.Play();
         }
+    }
+
+    /// <summary>
+    /// 音频播放结束回调函数
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
+    private void waveOutDevice_PlaybackStopped(object sender, EventArgs e)
+    {
+        if (waveOutDevice != null)
+        {
+            Debug.Log("开始答题");
+            FlowManage.StartUserAnswer();
+            waveOutDevice.Dispose();
+        }     
     }
 
     #region 通用方法

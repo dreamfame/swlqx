@@ -19,6 +19,8 @@ public class main_test : MonoBehaviour {
 
     public bool isAnswer = false;
 
+    public bool AskMode = false;
+
     MicManage mic;
 
     NAudioRecorder nar = new NAudioRecorder();
@@ -43,18 +45,19 @@ public class main_test : MonoBehaviour {
         {
             FlowManage.M2PMode(1);
         }
-        if (isAnswer) 
+        if (isAnswer)
         {
             answer_time += Time.deltaTime;
-            if (answer_time >= 10) 
+            if (answer_time >= 5)
             {
                 int questionNo = FlowManage.curNo;
                 questionNo++;
                 if (questionNo <= 3)
                 {
-                    FlowManage.StopAnswer();
-                    answer_time = 0f;
+                    Debug.Log("停止答题");
                     isAnswer = false;
+                    answer_time = 0f;
+                    FlowManage.StopAnswer();
                     FlowManage.M2PMode(questionNo);
                 }
                 else
@@ -65,6 +68,11 @@ public class main_test : MonoBehaviour {
                     FlowManage.P2MMode();
                 }
             }
+        }
+        
+        if (AskMode) 
+        {
+
         }
 	}
 
@@ -84,7 +92,13 @@ public class main_test : MonoBehaviour {
             Debug.Log("加载沙勿略问我界面失败");
             return;
         }
-        u.M2P_Answer_Panel.SetActive(false);
+        if (u.P2M_Ask_Panel == null) 
+        {
+            Debug.Log("加载我问沙勿略界面失败");
+            return;
+        }
+        u.HideM2PAnswerPanel();
+        u.HideP2MAskPanel();
         CharacterModel.GetComponent<Animation>().Stop();
         FlowManage.EnterStandBy(CharacterModel);
     }
@@ -105,5 +119,5 @@ public class main_test : MonoBehaviour {
             VoiceManage.waveOutDevice.Dispose();
             VoiceManage.waveOutDevice = null;
         }
-    }  
+    }
 }
