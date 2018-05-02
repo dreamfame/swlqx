@@ -58,7 +58,7 @@ namespace Assets.Scripts
         /// <param name="no">题号</param>
         public static void M2PMode(int no) 
         {
-            u.M2P_Answer_Panel.transform.GetChild(6).gameObject.SetActive(false);
+            u.M2P_Answer_Panel.transform.GetChild(5).gameObject.SetActive(false);
             u.ShowM2PAnswerPanel();
             curNo = no;
             if (tempAnswer == null)
@@ -67,12 +67,13 @@ namespace Assets.Scripts
             }
             else//机器读出并在界面显示问题内容
             {
+                u.M2P_Answer_Panel.transform.GetChild(curNo - 1).gameObject.SetActive(true);
+                u.M2P_Answer_Panel.transform.GetChild(curNo - 1).gameObject.GetComponent<UILabel>().text = curNo + "." + tempAnswer[no - 1].title;
+                u.M2P_Answer_Panel.transform.GetChild(curNo - 1).gameObject.transform.GetChild(0).GetComponent<UILabel>().text = "A." + tempAnswer[no - 1].answerA;
+                u.M2P_Answer_Panel.transform.GetChild(curNo - 1).gameObject.transform.GetChild(1).GetComponent<UILabel>().text = "B." + tempAnswer[no - 1].answerB;
+                u.M2P_Answer_Panel.transform.GetChild(curNo - 1).gameObject.transform.GetChild(2).GetComponent<UILabel>().text = "C." + tempAnswer[no - 1].answerC;
                 VoiceManage vm = new VoiceManage();
-                vm.PlayVoice(tempAnswer[no - 1].title+"；请在二十秒内作出回答。", "subject" + no,Application.dataPath+"/Resources/Voice");
-                u.M2P_Answer_Panel.transform.GetChild(0).gameObject.GetComponent<UILabel>().text = curNo+"."+tempAnswer[no - 1].title;
-                u.M2P_Answer_Panel.transform.GetChild(1).gameObject.GetComponent<UILabel>().text = "A." + tempAnswer[no - 1].answerA;
-                u.M2P_Answer_Panel.transform.GetChild(2).gameObject.GetComponent<UILabel>().text = "B." + tempAnswer[no - 1].answerB;
-                u.M2P_Answer_Panel.transform.GetChild(3).gameObject.GetComponent<UILabel>().text = "C." + tempAnswer[no - 1].answerC;
+                vm.PlayVoice(tempAnswer[no - 1].title, "subject" + no,Application.dataPath+"/Resources/Voice");            
             }
         }
 
@@ -123,8 +124,8 @@ namespace Assets.Scripts
                     if (answerStr.Equals(Needle) || Needle.Contains(answerStr))
                     {
                         Debug.Log("回答正确");
-                        u.M2P_Answer_Panel.transform.GetChild(6).gameObject.SetActive(true);
-                        u.M2P_Answer_Panel.transform.GetChild(6).gameObject.GetComponent<UILabel>().text = "回答正确";
+                        u.M2P_Answer_Panel.transform.GetChild(5).gameObject.SetActive(true);
+                        u.M2P_Answer_Panel.transform.GetChild(5).gameObject.GetComponent<UILabel>().text = "回答正确";
                     }
                     else
                     {
@@ -134,22 +135,22 @@ namespace Assets.Scripts
                         if ((likeness * 100) > 50)
                         {
                             Debug.Log("回答正确");
-                            u.M2P_Answer_Panel.transform.GetChild(6).gameObject.SetActive(true);
-                            u.M2P_Answer_Panel.transform.GetChild(6).gameObject.GetComponent<UILabel>().text = "回答正确";
+                            u.M2P_Answer_Panel.transform.GetChild(5).gameObject.SetActive(true);
+                            u.M2P_Answer_Panel.transform.GetChild(5).gameObject.GetComponent<UILabel>().text = "回答正确";
                         }
                         else
                         {
                             Debug.Log("回答错误");
-                            u.M2P_Answer_Panel.transform.GetChild(6).gameObject.SetActive(true);
-                            u.M2P_Answer_Panel.transform.GetChild(6).gameObject.GetComponent<UILabel>().text = "回答错误";
+                            u.M2P_Answer_Panel.transform.GetChild(5).gameObject.SetActive(true);
+                            u.M2P_Answer_Panel.transform.GetChild(5).gameObject.GetComponent<UILabel>().text = "回答错误";
                         }
                     }
                 }
                 else
                 {
                     Debug.Log("抱歉,您说了什么，我没有听清");
-                    u.M2P_Answer_Panel.transform.GetChild(6).gameObject.SetActive(true);
-                    u.M2P_Answer_Panel.transform.GetChild(6).gameObject.GetComponent<UILabel>().text = "抱歉,您说了什么，我没有听清";
+                    u.M2P_Answer_Panel.transform.GetChild(5).gameObject.SetActive(true);
+                    u.M2P_Answer_Panel.transform.GetChild(5).gameObject.GetComponent<UILabel>().text = "抱歉,您说了什么，我没有听清";
                 }
             }
         }

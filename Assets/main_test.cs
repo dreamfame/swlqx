@@ -29,6 +29,7 @@ public class main_test : MonoBehaviour {
 	void Start () {
         mic = new MicManage(GetComponent<AudioSource>());
         init();
+        
 	}
 	
 	// Update is called once per frame
@@ -48,7 +49,7 @@ public class main_test : MonoBehaviour {
         if (isAnswer)
         {
             answer_time += Time.deltaTime;
-            if (answer_time >= 5)
+            if (answer_time >= 20)
             {
                 int questionNo = FlowManage.curNo;
                 questionNo++;
