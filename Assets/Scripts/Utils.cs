@@ -38,8 +38,18 @@ namespace Assets.Scripts
         public static string Encode(string text)
         {
             var plainTextBytes = Encoding.UTF8.GetBytes(text);
+            return ToBase64(plainTextBytes);
+        }
+        /// <summary>
+        /// 转化Base64
+        /// </summary>
+        /// <param name="plainTextBytes">待转码的二进制流</param>
+        /// <returns></returns>
+        public static string ToBase64(byte[] plainTextBytes)
+        {
             var base64 = Convert.ToBase64String(plainTextBytes).Replace('+', '-').Replace('/', '_').TrimEnd('=');
             return base64;
         }
+
     }
 }

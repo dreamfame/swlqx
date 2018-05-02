@@ -99,8 +99,6 @@ public class main : MonoBehaviour
             Debug.Log("语音合成测试...");
             VoiceManage vm = new VoiceManage();
             vm.PlayVoice("你好,我是沙勿略,很高兴见到你", "welcome", "Assets/Resources/Voice");
-            //vm.PlayVoice("潘基文借汉语点赞中国新一轮改革开放:联通孤岛,同舟共济", "syn", "Assets/Resources/Voice");
-            //vm.PlayVoice("潘基文借汉语点赞中国新一轮改革开放:联通孤岛,同舟        ", "syn", "Assets/Resources/Voice");
             var ac = UnityEditor.AssetDatabase.LoadAssetAtPath("Assets/Resources/Voice/welcome.wav", typeof(AudioClip)) as AudioClip;
             var aud = Camera.main.GetComponent<AudioSource>();
             aud.clip = ac;
@@ -115,8 +113,13 @@ public class main : MonoBehaviour
         //文本语义测试
         if (Input.GetKeyUp(KeyCode.D))
         {
+
             string result = VoiceManage.VoiceDistinguish();
-            AIUI.HttpPost(AIUI.TEXT_SEMANTIC_API, "text=" + Utils.Encode(result));
+            //string result = AIUI.HttpPost(AIUI.IAT_API, "{\"auf\":\"16k\",\"aue\":\"raw\",\"scene\":\"main\"}", "data=" + Utils.ToBase64(VoiceManage.GetAudioBytes()));
+            Debug.Log(string.Format("-->语音信息:{0}", result));
+            Debug.Log("小沙正在思考中...");
+            result = AIUI.HttpPost(AIUI.TEXT_SEMANTIC_API, "{\"userid\":\"test001\",\"scene\":\"main\"}", "text=" + Utils.Encode(result));
+            Debug.Log(string.Format("-->小沙回答:{0}", result));
         }
     }
 

@@ -13,7 +13,7 @@ namespace Assets.Scripts
         /// <summary>
         /// 麦克风设置
         /// </summary>
-        private string wav_file_dir = Environment.CurrentDirectory +"/wav/";
+        private string wav_file_dir = Application.dataPath + "/Resources/Voice/";
         private int maxRecordTime = 5;
         private int samplingRate = 16000;
         public Byte[] speech_Byte;
@@ -64,7 +64,7 @@ namespace Assets.Scripts
                 {
                     source.Stop();
                 }
-                Debug.Log("Channel :" + micRecord.channels + " ;Samle :" + micRecord.samples + " ;frequency :" + micRecord.frequency + " ;length :" + micRecord.length);
+                //Debug.Log("Channel :" + micRecord.channels + " ;Samle :" + micRecord.samples + " ;frequency :" + micRecord.frequency + " ;length :" + micRecord.length);
                 source.clip = micRecord;
                 source.Play();
             }
@@ -86,7 +86,7 @@ namespace Assets.Scripts
 
                 string filePath = wav_file_dir + filename;
 
-                Debug.Log("Record Ok :" + filePath);
+                //Debug.Log("Record Ok :" + filePath);
 
                 Directory.CreateDirectory(Path.GetDirectoryName(filePath));
 

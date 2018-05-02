@@ -29,7 +29,7 @@ public class MovieManage: SingletonUI<MovieManage>
     }
 	// Use this for initialization
 	void Start () {
-        uicamera = GameObject.Find("UI Root").transform.FindChild("Camera");
+        uicamera = GameObject.Find("UI Root").transform.Find("Camera");
     }
 	// Update is called once per frame
 	void Update () {
@@ -136,16 +136,16 @@ public class MovieManage: SingletonUI<MovieManage>
         if (uiTexture != null)
         {
             State = 1;
-            Transform uicamera = GameObject.Find("UI Root").transform.FindChild("Camera");
+            Transform uicamera = GameObject.Find("UI Root").transform.Find("Camera");
             movieTexture.Stop();
-            Destroy(transform.FindChild("tt").gameObject);
+            Destroy(transform.Find("tt").gameObject);
             checkFlag = false;
             action = null;
         }
         if (enabled)
             enabled = false;
         videoNo++;
-        GameObject.Find("UI Root").transform.FindChild("Camera").GetComponent<main>().isPlayed = false;
+        GameObject.Find("UI Root").transform.Find("Camera").GetComponent<main>().isPlayed = false;
     }
 
     /// <summary>
@@ -172,7 +172,7 @@ public class MovieManage: SingletonUI<MovieManage>
             this.currentPlayMovieName = movieName;
             uiTexture = NGUITools.AddChild<UITexture>(this.gameObject);
             uiTexture.name = "tt";
-            Transform uicamera = GameObject.Find("UI Root").transform.FindChild("Camera");
+            Transform uicamera = GameObject.Find("UI Root").transform.Find("Camera");
             uiTexture.transform.localPosition = new Vector3(0, 0, 0);
             uiTexture.transform.localPosition = new Vector3(0, 0, 0);
             uiTexture.width = width;

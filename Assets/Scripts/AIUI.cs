@@ -14,8 +14,8 @@ namespace Assets.Scripts
     class AIUI
     {
         public static string AIUI_BASE_URL = "http://api.xfyun.cn/";
-        public static string TEXT_SEMANTIC_API = "v1/aiui/v1/text_semantic";//文本语义接口
-
+        public static string TEXT_SEMANTIC_API = "v1/aiui/v1/text_semantic"; //文本语义接口
+        public static string IAT_API = "v1/aiui/v1/iat";                     //语音识别接口
         /// <summary>
         /// request头部参数
         /// </summary>
@@ -40,12 +40,11 @@ namespace Assets.Scripts
             myResponseStream.Close();
             Debug.Log(retString);
         }
-        public static string HttpPost(string url,string url_params)
+        public static string HttpPost(string url,string @params,string url_params)
         {
-
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(AIUI_BASE_URL+url);
             CurTime = Utils.CurrentTimeMillis();
-            Param = Utils.Encode("{\"userid\":\"test001\",\"scene\":\"main\"}");
+            Param = Utils.Encode(@params);
             CheckSum = Utils.ToMD5(string.Format("{0}{1}{2}{3}", APIKey, CurTime, Param, url_params));
             request.Method = "POST";
             request.ContentType = "application/x-www-form-urlencoded; charset=utf-8";
@@ -53,7 +52,6 @@ namespace Assets.Scripts
             request.Headers.Add("X-CurTime",CurTime);
             request.Headers.Add("X-Param", Param);
             request.Headers.Add("X-CheckSum", CheckSum);
-
             using (StreamWriter dataStream = new StreamWriter(request.GetRequestStream()))
             {
                 dataStream.Write(url_params);
@@ -67,9 +65,23 @@ namespace Assets.Scripts
             }
             StreamReader reader = new StreamReader(response.GetResponseStream(), Encoding.GetEncoding(encoding));
             string retString = reader.ReadToEnd();
+            AnswerResult ar;
+            if (retString != "")
+            {
+                Debug.Log(retString);
+                ar = JsonMapper.ToObject<AnswerResult>(retString);
+                if (ar.data != null && ar.data.answer != null)
+                {
+                   return ar.data.answer.text;
+                }
+                else
+                {
+                    return "这个问题我还不知道!";
+                }
+            }
             return retString;
         }
 
-        
+
     }
 }
