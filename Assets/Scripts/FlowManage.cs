@@ -66,10 +66,7 @@ namespace Assets.Scripts
             {
                 VoiceManage vm = new VoiceManage();
                 vm.PlayVoice(tempAnswer[no - 1].title, "subject" + no,Application.dataPath+"/Resources/Voice");
-                u.M2P_Answer_Panel.transform.GetChild(0).gameObject.GetComponent<UILabel>().text = tempAnswer[no - 1].title;
-                u.M2P_Answer_Panel.transform.GetChild(1).gameObject.GetComponent<UILabel>().text = "A."+tempAnswer[no - 1].answerA;
-                u.M2P_Answer_Panel.transform.GetChild(2).gameObject.GetComponent<UILabel>().text = "B."+tempAnswer[no - 1].answerB;
-                u.M2P_Answer_Panel.transform.GetChild(3).gameObject.GetComponent<UILabel>().text = "C."+tempAnswer[no - 1].answerC;
+                u.M2P_Answer_Panel.transform.GetChild(0).gameObject.GetComponent<UILabel>().text = curNo+"."+tempAnswer[no - 1].title;
             }
         }
 
@@ -78,6 +75,9 @@ namespace Assets.Scripts
         /// </summary>
         public static void StartUserAnswer() 
         {
+            u.M2P_Answer_Panel.transform.GetChild(1).gameObject.GetComponent<UILabel>().text = "A." + tempAnswer[curNo - 1].answerA;
+            u.M2P_Answer_Panel.transform.GetChild(2).gameObject.GetComponent<UILabel>().text = "B." + tempAnswer[curNo - 1].answerB;
+            u.M2P_Answer_Panel.transform.GetChild(3).gameObject.GetComponent<UILabel>().text = "C." + tempAnswer[curNo - 1].answerC;
             mt.isAnswer = true;
             nar.StartRec();
         }
