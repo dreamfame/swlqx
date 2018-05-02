@@ -127,6 +127,17 @@ public class VoiceManage
     }
 
     /// <summary>
+    /// 获取二进制流音频
+    /// </summary>
+    /// <returns></returns>
+    public static byte[] GetAudioBytes()
+    {
+        string file = mic.startRecording("rec");
+        if (file == string.Empty) { return null; }
+        return GetFileData(Application.dataPath + "/Resources/Voice/rec.wav");
+    }
+
+    /// <summary>
     /// 语音唤醒方法
     /// </summary>
     /// <param name="sid"></param>
@@ -166,8 +177,8 @@ public class VoiceManage
     private static string SpeechRecognition(string sid)
     {
         Debug.Log("加载成功,正在开启话筒..");
-        /*string file = mic.startRecording("rec");
-        if (file == string.Empty) { return ""; }*/
+        string file = mic.startRecording("rec");
+        if (file == string.Empty) { return ""; }
         byte[] audio_buffer = GetFileData(Application.dataPath + "/Resources/Voice/rec.wav");
         long audio_size = audio_buffer.Length;
         long audio_count = 0;
@@ -223,7 +234,6 @@ public class VoiceManage
             }
             Thread.Sleep(150); //防止频繁占用CPU
         }
-        Debug.Log(string.Format("-->语音信息:{0}", rec_result));
         return rec_result;
     }
     /// <summary>

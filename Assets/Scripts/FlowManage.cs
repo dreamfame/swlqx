@@ -94,8 +94,13 @@ namespace Assets.Scripts
             u.HideM2PAnswerPanel();
             u.ShowP2MAskPanel();
             Debug.Log("进入我问沙勿略模式");
-            //nar.StartRec();
-            
+            string result = VoiceManage.VoiceDistinguish();
+            Debug.Log(string.Format("-->语音信息:{0}", result));
+            Debug.Log("小沙正在思考中...");
+            result = AIUI.HttpPost(AIUI.TEXT_SEMANTIC_API, "{\"userid\":\"test001\",\"scene\":\"main\"}", "text=" + Utils.Encode(result));
+            Debug.Log(string.Format("-->小沙回答:{0}", result));
+            //结束界面
+            //进入唤醒状态
         }
 
         /// <summary>
