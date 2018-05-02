@@ -267,10 +267,11 @@ public class VoiceManage
             memoryStream.Close();
             fileStream.Close();
             waveOutDevice = new WaveOut();
-            waveOutDevice.PlaybackStopped += waveOutDevice_PlaybackStopped; 
+            //waveOutDevice.PlaybackStopped += waveOutDevice_PlaybackStopped; 
             audioFileReader = new AudioFileReader(Application.dataPath + "/Resources/Voice/" + filename);
             waveOutDevice.Init(audioFileReader);
             waveOutDevice.Play();
+            FlowManage.StartUserAnswer();
         }
     }
 
