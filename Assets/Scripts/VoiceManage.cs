@@ -55,11 +55,12 @@ public class VoiceManage
         try
         {
             ///APPID请勿随意改动  
-            string login_configs = "appid =5ab8b014, work_dir = .";//登录参数,自己注册后获取的appid  
+            string login_configs = msp_login.APPID+", work_dir = .";//登录参数,自己注册后获取的appid  
+            Debug.Log(login_configs);
             ret = MSC.MSPLogin(string.Empty, string.Empty, login_configs);//第一个参数为用户名，第二个参数为密码，第三个参数是登录参数，用户名和密码需要在http://open.voicecloud.cn  
             if (ret != (int)ErrorCode.MSP_SUCCESS) { Debug.Log("登陆失败!" + ret); return; }
-            //string @params = "engine_type = cloud,voice_name=nannan,speed=50,volume=50,pitch=50,text_encoding =UTF8,background_sound=1,sample_rate=16000";
-            string @params = "engine_type = local, voice_name = xiaoyan, text_encoding = UTF8, tts_res_path = fo|res\\tts\\xiaoyan.jet;fo|res\\tts\\common.jet, sample_rate = 16000, speed = 50, volume = 50, pitch = 50, rdn = 2";
+            string @params = "engine_type = cloud,voice_name=nannan,speed=50,volume=50,pitch=50,text_encoding =UTF8,background_sound=1,sample_rate=16000";
+            //string @params = "engine_type = local, voice_name = xiaoyan, text_encoding = UTF8, tts_res_path = fo|res\\tts\\xiaoyan.jet;fo|res\\tts\\common.jet, sample_rate = 16000, speed = 50, volume = 50, pitch = 50, rdn = 2";
             sid = Ptr2Str(MSC.QTTSSessionBegin(@params, ref ret));
             SpeechSynthesis(sid,text, name,path);
         }
