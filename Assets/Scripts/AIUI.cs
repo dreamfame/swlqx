@@ -22,16 +22,12 @@ namespace Assets.Scripts
         /// <summary>
         /// request头部参数
         /// </summary>
-        private string APPID = "5accf546";
-        private string APIKey = "879c98332be0467e81b31fdf5b861faf";
+        private static string APPID = "5accf546";
+        private static string APIKey = "879c98332be0467e81b31fdf5b861faf";
         private static string CurTime;
         private static string Param;
         private static string CheckSum;
 
-        public AIUI(string apikey)
-        {
-            this.APIKey = apikey;
-        }
         public string Answer = string.Empty;
 
         public static void HttpGet(string url)
@@ -47,7 +43,7 @@ namespace Assets.Scripts
             myResponseStream.Close();
             Debug.Log(retString);
         }
-        public string HttpPost(string url,string @params,string url_params)
+        public static string HttpPost(string url,string @params,string url_params)
         {
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(AIUI_BASE_URL+url);
             CurTime = Utils.CurrentTimeMillis();

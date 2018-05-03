@@ -82,7 +82,6 @@ namespace Assets.Scripts
         /// <param name="e"></param>
         private void waveSource_RecordingStopped(object sender, EventArgs e)
         {
-            Debug.Log("停");
             if (waveSource != null)
             {
                 waveSource.Dispose();

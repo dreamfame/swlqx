@@ -29,7 +29,6 @@ public class main_test : MonoBehaviour {
 	void Start () {
         mic = new MicManage(GetComponent<AudioSource>());
         init();
-        
 	}
 	
 	// Update is called once per frame
@@ -55,7 +54,6 @@ public class main_test : MonoBehaviour {
                 questionNo++;
                 if (questionNo <= 3)
                 {
-                    Debug.Log("停止答题");
                     isAnswer = false;
                     answer_time = 0f;
                     FlowManage.StopAnswer();

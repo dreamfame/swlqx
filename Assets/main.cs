@@ -118,7 +118,7 @@ public class main : MonoBehaviour
             //string result = AIUI.HttpPost(AIUI.IAT_API, "{\"auf\":\"16k\",\"aue\":\"raw\",\"scene\":\"main\"}", "data=" + Utils.ToBase64(VoiceManage.GetAudioBytes()));
             Debug.Log(string.Format("-->语音信息:{0}", result));
             Debug.Log("小沙正在思考中...");
-            result = AIUI.HttpPost(AIUI.TEXT_SEMANTIC_API, "{\"userid\":\"test001\",\"scene\":\"main\"}", "text=" + Utils.Encode(result));
+            //result = AIUI.HttpPost(AIUI.TEXT_SEMANTIC_API, "{\"userid\":\"test001\",\"scene\":\"main\"}", "text=" + Utils.Encode(result));
             Debug.Log(string.Format("-->小沙回答:{0}", result));
         }
     }
