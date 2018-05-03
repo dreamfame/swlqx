@@ -59,7 +59,8 @@ public class VoiceManage
             if (ret != (int)ErrorCode.MSP_SUCCESS) { Debug.Log("登陆失败!" + ret); return; }
             //string @params = "engine_type = cloud,voice_name=nannan,speed=50,volume=50,pitch=50,text_encoding =UTF8,background_sound=1,sample_rate=16000";
             string @params = "engine_type = local, voice_name = xiaoyan, text_encoding = UTF8, tts_res_path = fo|res\\tts\\xiaoyan.jet;fo|res\\tts\\common.jet, sample_rate = 16000, speed = 50, volume = 50, pitch = 50, rdn = 1";
-            sid = Ptr2Str(MSC.QTTSSessionBegin(@params, ref ret)); 
+            sid = Ptr2Str(MSC.QTTSSessionBegin(@params, ref ret));
+            Debug.Log(string.Format("-->开启一次语音合成[{0}]", sid));
             SpeechSynthesis(sid,text, name,path);
         }
         finally
