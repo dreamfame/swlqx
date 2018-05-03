@@ -49,7 +49,7 @@ public class main_test : MonoBehaviour {
         if (isAnswer)
         {
             answer_time += Time.deltaTime;
-            if (answer_time >= 20)
+            if (answer_time >= 10)
             {
                 int questionNo = FlowManage.curNo;
                 questionNo++;

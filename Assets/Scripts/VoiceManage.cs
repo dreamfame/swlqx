@@ -176,8 +176,8 @@ public class VoiceManage
     private static string SpeechRecognition(string sid)
     {
         Debug.Log("加载成功,正在开启话筒..");
-        string file = mic.startRecording("rec");
-        if (file == string.Empty) { return ""; }
+        //string file = mic.startRecording("rec");
+        //if (file == string.Empty) { return ""; }
         byte[] audio_buffer = GetFileData(Application.dataPath + "/Resources/Voice/rec.wav");
         long audio_size = audio_buffer.Length;
         long audio_count = 0;
