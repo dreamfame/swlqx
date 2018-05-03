@@ -82,9 +82,48 @@ namespace Assets.Scripts
         /// </summary>
         public static void StartUserAnswer() 
         {
-            
             mt.isAnswer = true;
-            nar.StartRec();
+            string result = VoiceManage.VoiceDistinguish();
+            if (result != "")
+            {
+                string HayStack = result;
+                Regex r = new Regex(@"[a-zA-Z]+");
+                Match m = r.Match(HayStack);
+                String answerStr = m.Value.ToUpper().Trim();
+                string Needle = tempAnswer[curNo - 1].CorrectAnswer;
+                if (answerStr.Equals(Needle) || Needle.Contains(answerStr))
+                {
+                    Debug.Log("回答正确");
+                    u.M2P_Answer_Panel.transform.GetChild(5).gameObject.SetActive(true);
+                    u.M2P_Answer_Panel.transform.GetChild(5).gameObject.GetComponent<UILabel>().text = "回答正确";
+                }
+                else
+                {
+                    IAnalyser analyser = new SimHashAnalyser();
+                    var likeness = analyser.GetLikenessValue(Needle, HayStack);
+                    Debug.Log("相似度为：" + likeness * 100);
+                    if ((likeness * 100) > 50)
+                    {
+                        Debug.Log("回答正确");
+                        u.M2P_Answer_Panel.transform.GetChild(5).gameObject.SetActive(true);
+                        u.M2P_Answer_Panel.transform.GetChild(5).gameObject.GetComponent<UILabel>().text = "回答正确";
+                    }
+                    else
+                    {
+                        Debug.Log("回答错误");
+                        u.M2P_Answer_Panel.transform.GetChild(5).gameObject.SetActive(true);
+                        u.M2P_Answer_Panel.transform.GetChild(5).gameObject.GetComponent<UILabel>().text = "回答错误";
+                    }
+                }
+            }
+            else
+            {
+                Debug.Log("抱歉,您说了什么，我没有听清");
+                u.M2P_Answer_Panel.transform.GetChild(5).gameObject.SetActive(true);
+                u.M2P_Answer_Panel.transform.GetChild(5).gameObject.GetComponent<UILabel>().text = "抱歉,您说了什么，我没有听清";
+            }
+           
+            //nar.StartRec();
         }
 
         /// <summary>

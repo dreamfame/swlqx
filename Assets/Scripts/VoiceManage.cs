@@ -54,7 +54,6 @@ public class VoiceManage
         string sid = string.Empty;
         try
         {
-            ///APPID请勿随意改动  
             string login_configs = msp_login.APPID+", work_dir = .";//登录参数,自己注册后获取的appid  
             ret = MSC.MSPLogin(string.Empty, string.Empty, login_configs);//第一个参数为用户名，第二个参数为密码，第三个参数是登录参数，用户名和密码需要在http://open.voicecloud.cn  
             if (ret != (int)ErrorCode.MSP_SUCCESS) { Debug.Log("登陆失败!" + ret); return; }
@@ -106,7 +105,7 @@ public class VoiceManage
         try
         {
             int retCode = MSC.MSPLogin(null, null, msp_login.APPID + ",work_dir = .");
-            if (retCode != (int)ErrorCode.MSP_SUCCESS) { Debug.Log("登陆失败!"); return ""; }
+            if (retCode != (int)ErrorCode.MSP_SUCCESS) { Debug.Log("登陆失败:" + retCode); return ""; }
             Debug.Log(string.Format("登陆成功,语音识别正在加载..."));
             string session_params = "engine_type=cloud,sub = iat, domain = iat, language = zh_cn, accent = mandarin, sample_rate = 16000, result_type = plain, result_encoding = UTF-8 ,vad_eos = 5000";//可停止说话5秒保持语音识别状态
             string sid = Ptr2Str(MSC.QISRSessionBegin(string.Empty, session_params, ref retCode));
