@@ -47,7 +47,7 @@ namespace Assets.Scripts
             myResponseStream.Close();
             Debug.Log(retString);
         }
-        private string HttpPost(string url,string @params,string url_params)
+        public string HttpPost(string url,string @params,string url_params)
         {
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(AIUI_BASE_URL+url);
             CurTime = Utils.CurrentTimeMillis();
