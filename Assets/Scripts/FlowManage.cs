@@ -95,7 +95,7 @@ namespace Assets.Scripts
             u.ShowP2MAskPanel();
             Debug.Log("进入我问沙勿略模式");
             VoiceManage vm = new VoiceManage();
-            vm.PlayVoice("下面你可以来向我咨询,我会告诉你我所知道的一切", "welcome", "Assets/Resources/Voice");
+            vm.PlayVoice("下面你可以来向我咨询,我会告诉你我所知道的一切", "p2m", Application.dataPath+"/Resources/Voice");
             string result = VoiceManage.VoiceDistinguish();
             Debug.Log(string.Format("-->语音信息:{0}", result));
             if (result == string.Empty || result == null)
