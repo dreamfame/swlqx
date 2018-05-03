@@ -82,7 +82,6 @@ namespace Assets.Scripts
         /// </summary>
         public static void StartUserAnswer() 
         {
-            
             mt.isAnswer = true;
             nar.StartRec();
         }
@@ -97,8 +96,16 @@ namespace Assets.Scripts
             Debug.Log("进入我问沙勿略模式");
             string result = VoiceManage.VoiceDistinguish();
             Debug.Log(string.Format("-->语音信息:{0}", result));
+            if (result == string.Empty || result == null)
+            {
+                u.P2M_Ask_Panel.transform.GetChild(4).gameObject.SetActive(true);
+                u.P2M_Ask_Panel.transform.GetChild(4).gameObject.GetComponent<UILabel>().text = "未识别到语音";
+            }
+            else { u.P2M_Ask_Panel.transform.GetChild(4).gameObject.GetComponent<UILabel>().text = result; }
             Debug.Log("小沙正在思考中...");
             result = AIUI.HttpPost(AIUI.TEXT_SEMANTIC_API, "{\"userid\":\"test001\",\"scene\":\"main\"}", "text=" + Utils.Encode(result));
+            u.P2M_Ask_Panel.transform.GetChild(6).gameObject.SetActive(true);
+            u.P2M_Ask_Panel.transform.GetChild(6).gameObject.GetComponent<UILabel>().text = result;
             Debug.Log(string.Format("-->小沙回答:{0}", result));
             //结束界面
             //进入唤醒状态
