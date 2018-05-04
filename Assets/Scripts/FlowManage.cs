@@ -98,8 +98,9 @@ namespace Assets.Scripts
             if (result == string.Empty || result == null)
             {
                 u.P2M_Ask_Panel.transform.GetChild(4).gameObject.SetActive(true);
-                u.P2M_Ask_Panel.transform.GetChild(4).gameObject.GetComponent<UILabel>().text = "未识别到语音";
-                mt.isFinished = true;
+                u.P2M_Ask_Panel.transform.GetChild(4).gameObject.GetComponent<UILabel>().text = "对不起，我没有听清您说的话！可以再说一次吗？";
+                //mt.isFinished = true;
+                mt.flow_change = true;
             }
             else
             {

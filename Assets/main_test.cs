@@ -4,6 +4,8 @@ using Assets.Scripts;
 using NAudio;
 using NAudio.Wave;
 using Assets.Scripts.SimHash;
+using System.IO;
+using System;
 
 public class main_test : MonoBehaviour {
 
@@ -81,6 +83,7 @@ public class main_test : MonoBehaviour {
             wait_time += Time.deltaTime;
             if (wait_time >= 5) 
             {
+                Debug.Log("监听中...");
                 wait_time = 0f;
                 flow_change = false;
                 AskMode = true;
@@ -111,6 +114,7 @@ public class main_test : MonoBehaviour {
     /// </summary>
     public void init()
     {
+        DelectDir(Application.dataPath + "/Resources/Voice");
         if (CharacterModel == null)
         {
             Debug.Log("加载人物模型失败");
@@ -144,6 +148,31 @@ public class main_test : MonoBehaviour {
         u.P2M_Ask_Panel.transform.GetChild(6).gameObject.SetActive(false);
         CharacterModel.GetComponent<Animation>().Stop();
         FlowManage.EnterStandBy(CharacterModel);
+    }
+
+    public static void DelectDir(string srcPath)
+    {
+        try
+        {
+            DirectoryInfo dir = new DirectoryInfo(srcPath);
+            FileSystemInfo[] fileinfo = dir.GetFileSystemInfos();  //返回目录中所有文件和子目录
+            foreach (FileSystemInfo i in fileinfo)
+            {
+                if (i is DirectoryInfo)            //判断是否文件夹
+                {
+                    DirectoryInfo subdir = new DirectoryInfo(i.FullName);
+                    subdir.Delete(true);          //删除子目录和文件
+                }
+                else
+                {
+                    File.Delete(i.FullName);      //删除指定文件
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            throw;
+        }
     }
 
     void OnApplicationQuit()
