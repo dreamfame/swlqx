@@ -57,8 +57,16 @@ public class main_test : MonoBehaviour {
                     UserStartAnswer = false;
                     Debug.Log("开始答题");
                     isAnswer = true;
-                    VoiceManage.waveOutDevice.Dispose();
-                    VoiceManage.audioFileReader.Dispose();
+                    if (VoiceManage.waveOutDevice != null)
+                    {
+                        VoiceManage.waveOutDevice.Dispose();
+                        VoiceManage.waveOutDevice = null;
+                    }
+                    if (VoiceManage.audioFileReader != null)
+                    {
+                        VoiceManage.audioFileReader.Close();
+                        VoiceManage.audioFileReader = null;
+                    }
                     nar.StartRec();
                 }
             }
@@ -66,6 +74,16 @@ public class main_test : MonoBehaviour {
             {
                 if (VoiceManage.waveOutDevice.PlaybackState == PlaybackState.Stopped)
                 {
+                    if (VoiceManage.waveOutDevice != null)
+                    {
+                        VoiceManage.waveOutDevice.Dispose();
+                        VoiceManage.waveOutDevice = null;
+                    }
+                    if (VoiceManage.audioFileReader != null)
+                    {
+                        VoiceManage.audioFileReader.Close();
+                        VoiceManage.audioFileReader = null;
+                    }
                     Debug.Log("完成答案解析，进入下一题");
                     AnswerAnalysis = false;
                     int questionNo = FlowManage.curNo;
