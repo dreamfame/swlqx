@@ -281,7 +281,6 @@ public class VoiceManage
             audioFileReader = new AudioFileReader(Application.dataPath + "/Resources/Voice/" + filename);
             waveOutDevice.Init(audioFileReader);
             waveOutDevice.Play();
-            FlowManage.StartUserAnswer();
         }
     }
 

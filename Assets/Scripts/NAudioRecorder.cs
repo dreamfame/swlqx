@@ -24,7 +24,7 @@ namespace Assets.Scripts
 
             waveSource.DataAvailable += waveSource_DataAvailable;
             waveSource.RecordingStopped += waveSource_RecordingStopped;
-            fileName = "Assets/Resources/Voice/rec.wav";//Application.dataPath + "/Resources/Voice/rec.wav";
+            fileName = Application.dataPath + "/Resources/Voice/rec.wav";
             waveFile = new WaveFileWriter(fileName, waveSource.WaveFormat);
 
             waveSource.StartRecording();

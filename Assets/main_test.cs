@@ -23,6 +23,8 @@ public class main_test : MonoBehaviour {
 
     public bool isAnswer = false;
 
+    public bool AnswerAnalysis = false;
+
     public bool AskMode = false;
 
     public bool flow_change = false;
@@ -56,7 +58,27 @@ public class main_test : MonoBehaviour {
                     Debug.Log("开始答题");
                     isAnswer = true;
                     VoiceManage.waveOutDevice.Dispose();
+                    VoiceManage.audioFileReader.Dispose();
                     nar.StartRec();
+                }
+            }
+            if (AnswerAnalysis) 
+            {
+                if (VoiceManage.waveOutDevice.PlaybackState == PlaybackState.Stopped)
+                {
+                    Debug.Log("完成答案解析，进入下一题");
+                    AnswerAnalysis = false;
+                    int questionNo = FlowManage.curNo;
+                    questionNo++;
+                    if (questionNo <= 3)
+                    {
+                        FlowManage.M2PMode(questionNo);
+                    }
+                    else 
+                    {
+                        flow_change = true;
+                        FlowManage.StopAnswer(nar);
+                    }
                 }
             }
         }
@@ -78,23 +100,9 @@ public class main_test : MonoBehaviour {
             answer_time += Time.deltaTime;
             if (answer_time >= 10)
             {
-                int questionNo = FlowManage.curNo;
-                questionNo++;
-                if (questionNo <= 3)
-                {
-                    isAnswer = false;
-                    answer_time = 0f;
-                    FlowManage.StopAnswer(nar);
-                    VoiceManage.audioFileReader.Dispose();
-                    FlowManage.M2PMode(questionNo);
-                }
-                else
-                {
-                    answer_time = 0f;
-                    isAnswer = false;
-                    flow_change = true;
-                    FlowManage.StopAnswer(nar);
-                }
+                isAnswer = false;
+                answer_time = 0f;
+                FlowManage.StopAnswer(nar);
             }
         }
         if (flow_change) 

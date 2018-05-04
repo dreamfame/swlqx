@@ -27,6 +27,8 @@ namespace Assets.Scripts
 
         private static main_test mt = Camera.main.GetComponent<main_test>();
 
+        private static VoiceManage vm = new VoiceManage();
+
         /// <summary>
         /// 进入待机状态
         /// </summary>
@@ -69,8 +71,8 @@ namespace Assets.Scripts
                 u.M2P_Answer_Panel.transform.GetChild(curNo - 1).gameObject.transform.GetChild(0).GetComponent<UILabel>().text = "A." + tempAnswer[no - 1].answerA;
                 u.M2P_Answer_Panel.transform.GetChild(curNo - 1).gameObject.transform.GetChild(1).GetComponent<UILabel>().text = "B." + tempAnswer[no - 1].answerB;
                 u.M2P_Answer_Panel.transform.GetChild(curNo - 1).gameObject.transform.GetChild(2).GetComponent<UILabel>().text = "C." + tempAnswer[no - 1].answerC;
-                VoiceManage vm = new VoiceManage();
                 vm.PlayVoice(tempAnswer[no - 1].title, "subject" + no,Application.dataPath+"/Resources/Voice");
+                FlowManage.StartUserAnswer();
             }
         }
 
@@ -121,8 +123,8 @@ namespace Assets.Scripts
         {
             if (nar.waveSource != null)
             {
-                VoiceManage vm = new VoiceManage();
                 string retString = nar.StopRec();
+                mt.AnswerAnalysis = true;
                 if (retString != "")
                 {
                     string HayStack = retString;
@@ -134,6 +136,7 @@ namespace Assets.Scripts
                     if (answerStr.Equals(Needle) || Needle.Contains(answerStr))
                     {
                         Debug.Log("回答正确");
+                        vm.PlayVoice("恭喜你，回答正确", "correct", Application.dataPath + "/Resources/Voice");
                         u.M2P_Answer_Panel.transform.GetChild(5).gameObject.GetComponent<UILabel>().text = "回答正确";
                         if (Needle == "A") 
                         {
@@ -163,6 +166,7 @@ namespace Assets.Scripts
                     else
                     {
                         Debug.Log("回答错误");
+                        vm.PlayVoice("很遗憾，回答错误，正确答案是"+Needle, "wrong", Application.dataPath + "/Resources/Voice");
                         u.M2P_Answer_Panel.transform.GetChild(5).gameObject.GetComponent<UILabel>().text = "回答错误";
                         if (Needle == "A")
                         {
@@ -210,6 +214,7 @@ namespace Assets.Scripts
                 }
                 else
                 {
+                    vm.PlayVoice("抱歉,您说了什么，我没有听清", "sorry", Application.dataPath + "/Resources/Voice");
                     Debug.Log("抱歉,您说了什么，我没有听清");
                     u.M2P_Answer_Panel.transform.GetChild(5).gameObject.GetComponent<UILabel>().text = "抱歉,您说了什么，我没有听清";
                 }
