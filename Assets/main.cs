@@ -93,34 +93,6 @@ public class main : MonoBehaviour
             }
         }
         */
-        //语音合成测试
-        if (Input.GetMouseButtonDown(0))
-        {
-            Debug.Log("语音合成测试...");
-            VoiceManage vm = new VoiceManage();
-            vm.PlayVoice("你好,我是沙勿略,很高兴见到你", "welcome", "Assets/Resources/Voice");
-            var ac = UnityEditor.AssetDatabase.LoadAssetAtPath("Assets/Resources/Voice/welcome.wav", typeof(AudioClip)) as AudioClip;
-            var aud = Camera.main.GetComponent<AudioSource>();
-            aud.clip = ac;
-            aud.Play();
-        }
-
-        //语音唤醒测试
-        if (Input.GetKeyUp(KeyCode.A))
-        {
-            FlowManage.M2PMode(1);
-        }
-        //文本语义测试
-        if (Input.GetKeyUp(KeyCode.D))
-        {
-
-            string result = VoiceManage.VoiceDistinguish();
-            //string result = AIUI.HttpPost(AIUI.IAT_API, "{\"auf\":\"16k\",\"aue\":\"raw\",\"scene\":\"main\"}", "data=" + Utils.ToBase64(VoiceManage.GetAudioBytes()));
-            Debug.Log(string.Format("-->语音信息:{0}", result));
-            Debug.Log("小沙正在思考中...");
-            //result = AIUI.HttpPost(AIUI.TEXT_SEMANTIC_API, "{\"userid\":\"test001\",\"scene\":\"main\"}", "text=" + Utils.Encode(result));
-            Debug.Log(string.Format("-->小沙回答:{0}", result));
-        }
     }
 
     /// <summary>

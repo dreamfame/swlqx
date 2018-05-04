@@ -21,9 +21,17 @@ public class main_test : MonoBehaviour {
 
     public bool AskMode = false;
 
+    public bool flow_change = false;
+
+    public float wait_time = 0f;
+
+    public bool isFinished = false;
+
     MicManage mic;
 
     NAudioRecorder nar = new NAudioRecorder();
+
+    public float once_ask_time = 0f;
 
 	// Use this for initialization
 	void Start () {
@@ -63,15 +71,38 @@ public class main_test : MonoBehaviour {
                 {
                     answer_time = 0f;
                     isAnswer = false;
+                    flow_change = true;
                     FlowManage.StopAnswer();
-                    FlowManage.P2MMode();
                 }
+            }
+        }
+        if (flow_change) 
+        {
+            wait_time += Time.deltaTime;
+            if (wait_time >= 5) 
+            {
+                wait_time = 0f;
+                flow_change = false;
+                AskMode = true;
+                nar.StartRec();
             }
         }
         
         if (AskMode) 
         {
+            once_ask_time += Time.deltaTime;
+            if (once_ask_time >= 10) 
+            {
+                AskMode = false;
+                once_ask_time = 0f;
+                FlowManage.P2MMode(nar);
+            }
+        }
 
+        if (isFinished) 
+        {
+            isFinished = false;
+            init();
         }
 	}
 
@@ -98,6 +129,19 @@ public class main_test : MonoBehaviour {
         }
         u.HideM2PAnswerPanel();
         u.HideP2MAskPanel();
+        u.M2P_Answer_Panel.transform.GetChild(5).gameObject.GetComponent<UILabel>().text = "";
+        for (var i = 0; i <= 2; i++)
+        {
+            u.M2P_Answer_Panel.transform.GetChild(i).gameObject.SetActive(false);
+            u.M2P_Answer_Panel.transform.GetChild(i).gameObject.transform.GetChild(0).gameObject.transform.GetChild(0).gameObject.SetActive(false);
+            u.M2P_Answer_Panel.transform.GetChild(i).gameObject.transform.GetChild(0).gameObject.transform.GetChild(1).gameObject.SetActive(false);
+            u.M2P_Answer_Panel.transform.GetChild(i).gameObject.transform.GetChild(1).gameObject.transform.GetChild(0).gameObject.SetActive(false);
+            u.M2P_Answer_Panel.transform.GetChild(i).gameObject.transform.GetChild(1).gameObject.transform.GetChild(1).gameObject.SetActive(false);
+            u.M2P_Answer_Panel.transform.GetChild(i).gameObject.transform.GetChild(2).gameObject.transform.GetChild(0).gameObject.SetActive(false);
+            u.M2P_Answer_Panel.transform.GetChild(i).gameObject.transform.GetChild(2).gameObject.transform.GetChild(1).gameObject.SetActive(false);
+        }
+        u.P2M_Ask_Panel.transform.GetChild(4).gameObject.SetActive(false);
+        u.P2M_Ask_Panel.transform.GetChild(6).gameObject.SetActive(false);
         CharacterModel.GetComponent<Animation>().Stop();
         FlowManage.EnterStandBy(CharacterModel);
     }
