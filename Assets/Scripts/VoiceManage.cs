@@ -58,7 +58,7 @@ public class VoiceManage
             ret = MSC.MSPLogin(string.Empty, string.Empty, login_configs);//第一个参数为用户名，第二个参数为密码，第三个参数是登录参数，用户名和密码需要在http://open.voicecloud.cn  
             if (ret != (int)ErrorCode.MSP_SUCCESS) { Debug.Log("登陆失败!" + ret); return; }
             //string @params = "engine_type = cloud,voice_name=nannan,speed=50,volume=50,pitch=50,text_encoding =UTF8,background_sound=1,sample_rate=16000";
-            string @params = "engine_type = local, voice_name = xiaofeng, text_encoding = UTF8, tts_res_path = fo|res\\tts\\xiaoyan.jet;fo|res\\tts\\common.jet, sample_rate = 16000, speed = 50, volume = 50, pitch = 50, rdn = 1";
+            string @params = "engine_type = local, voice_name = xiaoyan, text_encoding = UTF8, tts_res_path = fo|res\\tts\\xiaoyan.jet;fo|res\\tts\\common.jet, sample_rate = 16000, speed = 50, volume = 50, pitch = 50, rdn = 1";
             sid = Ptr2Str(MSC.QTTSSessionBegin(@params, ref ret));
             Debug.Log(string.Format("-->开启一次语音合成[{0}]", sid));
             SpeechSynthesis(sid,text, name,path);
@@ -276,28 +276,13 @@ public class VoiceManage
             memoryStream.WriteTo(fileStream);
             memoryStream.Close();
             fileStream.Close();
-            waveOutDevice = new WaveOut();
+            waveOutDevice = new WaveOutEvent();
             //waveOutDevice.PlaybackStopped += waveOutDevice_PlaybackStopped; 
             audioFileReader = new AudioFileReader(Application.dataPath + "/Resources/Voice/" + filename);
             waveOutDevice.Init(audioFileReader);
             waveOutDevice.Play();
             FlowManage.StartUserAnswer();
         }
-    }
-
-    /// <summary>
-    /// 音频播放结束回调函数
-    /// </summary>
-    /// <param name="sender"></param>
-    /// <param name="e"></param>
-    private void waveOutDevice_PlaybackStopped(object sender, EventArgs e)
-    {
-        if (waveOutDevice != null)
-        {
-            Debug.Log("开始答题");
-            FlowManage.StartUserAnswer();
-            waveOutDevice.Dispose();
-        }     
     }
 
     #region 通用方法

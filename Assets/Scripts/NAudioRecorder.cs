@@ -12,7 +12,7 @@ namespace Assets.Scripts
 	{
         public WaveIn waveSource = null;
         public WaveFileWriter waveFile = null;
-        private string fileName = "Assets/Resources/Voice/rec.wav";
+        private string fileName = "";
 
         /// <summary>
         /// 开始录音
@@ -24,7 +24,7 @@ namespace Assets.Scripts
 
             waveSource.DataAvailable += waveSource_DataAvailable;
             waveSource.RecordingStopped += waveSource_RecordingStopped;
-
+            fileName = "Assets/Resources/Voice/rec.wav";//Application.dataPath + "/Resources/Voice/rec.wav";
             waveFile = new WaveFileWriter(fileName, waveSource.WaveFormat);
 
             waveSource.StartRecording();

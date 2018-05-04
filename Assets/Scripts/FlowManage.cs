@@ -21,8 +21,6 @@ namespace Assets.Scripts
 
         private static Animation characterAnimation;//神父人物模型动画对象
 
-        public static NAudioRecorder nar = new NAudioRecorder();
-
         public static int curNo;
 
         private static List<Answer> tempAnswer = new List<Answer>();
@@ -58,7 +56,7 @@ namespace Assets.Scripts
         /// <param name="no">题号</param>
         public static void M2PMode(int no) 
         {
-            u.ShowM2PAnswerPanel();
+            //u.ShowM2PAnswerPanel();
             curNo = no;
             if (tempAnswer == null)
             {
@@ -81,8 +79,7 @@ namespace Assets.Scripts
         /// </summary>
         public static void StartUserAnswer() 
         {
-            mt.isAnswer = true;
-            nar.StartRec();
+            mt.UserStartAnswer = true;
         }
 
         /// <summary>
@@ -90,8 +87,8 @@ namespace Assets.Scripts
         /// </summary>
         public static void P2MMode(NAudioRecorder n) 
         {
-            u.HideM2PAnswerPanel();
-            u.ShowP2MAskPanel();
+            //u.HideM2PAnswerPanel();
+            //u.ShowP2MAskPanel();
             Debug.Log("进入我问沙勿略模式");
             string result = n.StopRec();
             Debug.Log(string.Format("-->语音信息:{0}", result));
@@ -120,7 +117,7 @@ namespace Assets.Scripts
         /// <summary>
         /// 停止回答（沙勿略问我）
         /// </summary>
-        public static void StopAnswer() 
+        public static void StopAnswer(NAudioRecorder nar) 
         {
             if (nar.waveSource != null)
             {

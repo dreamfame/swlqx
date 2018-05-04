@@ -19,6 +19,8 @@ public class main_test : MonoBehaviour {
 
     public float answer_time = 0f;
 
+    public bool UserStartAnswer = false;
+
     public bool isAnswer = false;
 
     public bool AskMode = false;
@@ -43,6 +45,21 @@ public class main_test : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
+
+        if (VoiceManage.waveOutDevice != null)//音频播放完毕后开始答题
+        {
+            if (UserStartAnswer)
+            {
+                if (VoiceManage.waveOutDevice.PlaybackState == PlaybackState.Stopped)
+                {
+                    UserStartAnswer = false;
+                    Debug.Log("开始答题");
+                    isAnswer = true;
+                    VoiceManage.waveOutDevice.Dispose();
+                    nar.StartRec();
+                }
+            }
+        }
         if (Input.GetMouseButtonDown(2)) 
         {         
             nar.StartRec();
@@ -53,6 +70,7 @@ public class main_test : MonoBehaviour {
         }
         if (Input.GetMouseButtonDown(1)) 
         {
+            //StartCoroutine(EnterM2MMode());
             FlowManage.M2PMode(1);
         }
         if (isAnswer)
@@ -66,7 +84,8 @@ public class main_test : MonoBehaviour {
                 {
                     isAnswer = false;
                     answer_time = 0f;
-                    FlowManage.StopAnswer();
+                    FlowManage.StopAnswer(nar);
+                    VoiceManage.audioFileReader.Dispose();
                     FlowManage.M2PMode(questionNo);
                 }
                 else
@@ -74,7 +93,7 @@ public class main_test : MonoBehaviour {
                     answer_time = 0f;
                     isAnswer = false;
                     flow_change = true;
-                    FlowManage.StopAnswer();
+                    FlowManage.StopAnswer(nar);
                 }
             }
         }
@@ -109,12 +128,17 @@ public class main_test : MonoBehaviour {
         }
 	}
 
+    IEnumerator EnterM2MMode() 
+    {
+        yield return new WaitForSeconds(3);
+        FlowManage.M2PMode(1);
+    }
+
     /// <summary>
     /// 系统初始化
     /// </summary>
     public void init()
     {
-        DelectDir(Application.dataPath + "/Resources/Voice");
         if (CharacterModel == null)
         {
             Debug.Log("加载人物模型失败");
@@ -148,31 +172,6 @@ public class main_test : MonoBehaviour {
         u.P2M_Ask_Panel.transform.GetChild(6).gameObject.SetActive(false);
         CharacterModel.GetComponent<Animation>().Stop();
         FlowManage.EnterStandBy(CharacterModel);
-    }
-
-    public static void DelectDir(string srcPath)
-    {
-        try
-        {
-            DirectoryInfo dir = new DirectoryInfo(srcPath);
-            FileSystemInfo[] fileinfo = dir.GetFileSystemInfos();  //返回目录中所有文件和子目录
-            foreach (FileSystemInfo i in fileinfo)
-            {
-                if (i is DirectoryInfo)            //判断是否文件夹
-                {
-                    DirectoryInfo subdir = new DirectoryInfo(i.FullName);
-                    subdir.Delete(true);          //删除子目录和文件
-                }
-                else
-                {
-                    File.Delete(i.FullName);      //删除指定文件
-                }
-            }
-        }
-        catch (Exception e)
-        {
-            throw;
-        }
     }
 
     void OnApplicationQuit()
