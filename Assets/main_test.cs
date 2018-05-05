@@ -29,9 +29,13 @@ public class main_test : MonoBehaviour {
 
     public bool flow_change = false;
 
+    public bool FinishedAnswer = false;
+
     public float wait_time = 0f;
 
     public bool isFinished = false;
+
+    public bool isTransit = false;
 
     MicManage mic;
 
@@ -70,7 +74,7 @@ public class main_test : MonoBehaviour {
                     nar.StartRec();
                 }
             }
-            if (AnswerAnalysis) 
+            if (AnswerAnalysis) //沙勿略问我模式答题后给出答案解析
             {
                 if (VoiceManage.waveOutDevice.PlaybackState == PlaybackState.Stopped)
                 {
@@ -94,9 +98,46 @@ public class main_test : MonoBehaviour {
                     }
                     else 
                     {
-                        flow_change = true;
-                        FlowManage.StopAnswer(nar);
+                        FlowManage.PlayTransitVoice(2, "下面进入我问沙勿略环节。");                
                     }
+                }
+            }
+            if (isTransit) //流程过渡播放声音
+            {
+                if (VoiceManage.waveOutDevice.PlaybackState == PlaybackState.Stopped)
+                {
+                    if (VoiceManage.waveOutDevice != null)
+                    {
+                        VoiceManage.waveOutDevice.Dispose();
+                        VoiceManage.waveOutDevice = null;
+                    }
+                    if (VoiceManage.audioFileReader != null)
+                    {
+                        VoiceManage.audioFileReader.Close();
+                        VoiceManage.audioFileReader = null;
+                    }
+                    isTransit = false;
+                    Debug.Log("完成过渡");
+                    flow_change = true;
+                }
+            }
+            if (FinishedAnswer) //我问沙勿略环节回答完毕
+            {
+                if (VoiceManage.waveOutDevice.PlaybackState == PlaybackState.Stopped)
+                {
+                    if (VoiceManage.waveOutDevice != null)
+                    {
+                        VoiceManage.waveOutDevice.Dispose();
+                        VoiceManage.waveOutDevice = null;
+                    }
+                    if (VoiceManage.audioFileReader != null)
+                    {
+                        VoiceManage.audioFileReader.Close();
+                        VoiceManage.audioFileReader = null;
+                    }
+                    FinishedAnswer = false;
+                    Debug.Log("回答完毕");
+                    flow_change = true;
                 }
             }
         }
@@ -125,15 +166,9 @@ public class main_test : MonoBehaviour {
         }
         if (flow_change) 
         {
-            wait_time += Time.deltaTime;
-            if (wait_time >= 5) 
-            {
-                Debug.Log("监听中...");
-                wait_time = 0f;
-                flow_change = false;
-                AskMode = true;
-                nar.StartRec();
-            }
+           flow_change = false;
+           AskMode = true;
+           nar.StartRec();
         }
         
         if (AskMode) 
@@ -202,7 +237,6 @@ public class main_test : MonoBehaviour {
 
     void OnApplicationQuit()
     {
-        NAudioRecorder nar = new NAudioRecorder();
         if (nar.waveSource != null)
         {
             nar.StopRec();

@@ -6,6 +6,8 @@ using UnityEngine;
 using LitJson;
 using Assets.Scripts.SimHash;
 using System.Text.RegularExpressions;
+using Assets.UI;
+using System.Xml;
 
 namespace Assets.Scripts
 {
@@ -98,22 +100,49 @@ namespace Assets.Scripts
             {
                 u.P2M_Ask_Panel.transform.GetChild(4).gameObject.SetActive(true);
                 u.P2M_Ask_Panel.transform.GetChild(4).gameObject.GetComponent<UILabel>().text = "对不起，我没有听清您说的话！可以再说一次吗？";
+                vm.PlayVoice("对不起，我没有听清您说的话！可以再说一次吗？", "answer", Application.dataPath + "/Resources/Voice");
                 //mt.isFinished = true;
-                mt.flow_change = true;
             }
             else
             {
                 u.P2M_Ask_Panel.transform.GetChild(4).gameObject.SetActive(true);
                 u.P2M_Ask_Panel.transform.GetChild(4).gameObject.GetComponent<UILabel>().text = result;
-                mt.flow_change = true;
+                Debug.Log("小沙正在思考中...");
+                string answer_result = AIUI.HttpPost(AIUI.TEXT_SEMANTIC_API, "{\"userid\":\"test001\",\"scene\":\"main\"}", "text=" + Utils.Encode(result));
+                u.P2M_Ask_Panel.transform.GetChild(6).gameObject.SetActive(true);
+                u.P2M_Ask_Panel.transform.GetChild(6).gameObject.GetComponent<UILabel>().text = answer_result;
+                vm.PlayVoice(answer_result, "answer", Application.dataPath + "/Resources/Voice");
+                if (answer_result.Equals("这个问题我还不知道!")) 
+                {
+                    DateTime dateTime = new DateTime();
+                    dateTime = DateTime.Now;
+                    XmlDocument xmlDoc = new XmlDocument();
+                    xmlDoc.Load(Application.dataPath + "/Resources/Question/record.xml");
+                    XmlNode root = xmlDoc.SelectSingleNode("root");
+                    XmlElement xe1 = xmlDoc.CreateElement("问题");
+                    xe1.SetAttribute("内容", result);
+                    xe1.SetAttribute("时间", dateTime.ToString());
+                    root.AppendChild(xe1);
+                    xmlDoc.Save(Application.dataPath + "/Resources/Question/record.xml");
+                }
+                Debug.Log(string.Format("-->小沙回答:{0}", result));
             }
-            Debug.Log("小沙正在思考中...");
-            result = AIUI.HttpPost(AIUI.TEXT_SEMANTIC_API, "{\"userid\":\"test001\",\"scene\":\"main\"}", "text=" + Utils.Encode(result));
-            u.P2M_Ask_Panel.transform.GetChild(6).gameObject.SetActive(true);
-            u.P2M_Ask_Panel.transform.GetChild(6).gameObject.GetComponent<UILabel>().text = result;
-            Debug.Log(string.Format("-->小沙回答:{0}", result));
+            mt.FinishedAnswer = true;
             //结束界面
             //进入唤醒状态
+        }
+
+        public static void PlayTransitVoice(int Mode,string txt) 
+        {
+            if (Mode == 1) //播放进入沙勿略问我模式语音
+            {
+
+            }
+            else if (Mode == 2) //播放进入我问沙勿略模式语音
+            {
+                mt.isTransit = true;
+                vm.PlayVoice(txt, "transit", Application.dataPath + "/Resources/Voice");
+            }
         }
 
         /// <summary>
@@ -124,6 +153,7 @@ namespace Assets.Scripts
             if (nar.waveSource != null)
             {
                 string retString = nar.StopRec();
+                Debug.Log("回答的是："+retString);
                 mt.AnswerAnalysis = true;
                 if (retString != "")
                 {
@@ -133,7 +163,7 @@ namespace Assets.Scripts
                     string answerStr = m.Value.ToUpper().Trim();
                     Debug.Log("回答的是：" + answerStr);
                     string Needle = tempAnswer[curNo - 1].CorrectAnswer;
-                    if (answerStr.Equals(Needle) || Needle.Contains(answerStr))
+                    if (answerStr.Equals(Needle) || Needle.Contains(answerStr)&&answerStr!="")
                     {
                         Debug.Log("回答正确");
                         vm.PlayVoice("恭喜你，回答正确", "correct", Application.dataPath + "/Resources/Voice");
