@@ -25,16 +25,13 @@ public class VoiceManage
 
     public static epStatus ep_status = epStatus.MSP_EP_NULL;
     public static rsltStatus rec_status = rsltStatus.MSP_REC_STATUS_SUCCESS;
+    public static SynthStatus synth_status = SynthStatus.MSP_TTS_FLAG_STILL_HAVE_DATA;
 
     private static int FRAME_LEN = 640;
 
     private static int BUFFER_SIZE = 4096;
 
     private static bool isWakeUp = false;
-
-    public static IWavePlayer waveOutDevice;
-
-    public static AudioFileReader audioFileReader; 
 
     private class msp_login
     {
@@ -49,19 +46,19 @@ public class VoiceManage
     /// <param name="text">语音内容</param>
     /// <param name="name">文件名</param>
     /// <param name="path">音频存放地址</param>
-    public void PlayVoice(string text, string name, string path)
+    public SynthStatus PlayVoice(string text, string name, string path)
     {
         string sid = string.Empty;
         try
         {
             string login_configs = msp_login.APPID+", work_dir = .";//登录参数,自己注册后获取的appid  
             ret = MSC.MSPLogin(string.Empty, string.Empty, login_configs);//第一个参数为用户名，第二个参数为密码，第三个参数是登录参数，用户名和密码需要在http://open.voicecloud.cn  
-            if (ret != (int)ErrorCode.MSP_SUCCESS) { Debug.Log("登陆失败!" + ret); return; }
+            if (ret != (int)ErrorCode.MSP_SUCCESS) { Debug.Log("登陆失败!" + ret); return SynthStatus.MSP_TTS_FLAG_CMD_CANCELED; }
             //string @params = "engine_type = cloud,voice_name=nannan,speed=50,volume=50,pitch=50,text_encoding =UTF8,background_sound=1,sample_rate=16000";
             string @params = "engine_type = local, voice_name = xiaoyan, text_encoding = UTF8, tts_res_path = fo|res\\tts\\xiaoyan.jet;fo|res\\tts\\common.jet, sample_rate = 16000, speed = 50, volume = 50, pitch = 50, rdn = 1";
             sid = Ptr2Str(MSC.QTTSSessionBegin(@params, ref ret));
             Debug.Log(string.Format("-->开启一次语音合成[{0}]", sid));
-            SpeechSynthesis(sid,text, name,path);
+            return SpeechSynthesis(sid,text, name,path);
         }
         finally
         {
@@ -241,19 +238,19 @@ public class VoiceManage
     /// </summary>
     /// <param name="sid"></param>
     /// <returns></returns>
-    private void SpeechSynthesis(string sid, string text, string name, string path)
+    private SynthStatus SpeechSynthesis(string sid, string text, string name, string path)
     {
         string filename = name+".wav"; //合成的语音文件  
         uint audio_len = 0;
         uint audio_total_len = 0;
-        SynthStatus synth_status = SynthStatus.MSP_TTS_FLAG_STILL_HAVE_DATA;
+        synth_status = SynthStatus.MSP_TTS_FLAG_STILL_HAVE_DATA;
         ret = MSC.QTTSTextPut(sid, text, (uint)Encoding.UTF8.GetByteCount(text), string.Empty);
-        if (ret != (int)ErrorCode.MSP_SUCCESS) { Debug.Log("写入文本失败!" + ret); return; }
+        if (ret != (int)ErrorCode.MSP_SUCCESS) { Debug.Log("写入文本失败!" + ret); return synth_status; }
         MemoryStream memoryStream = new MemoryStream();
         while (synth_status != SynthStatus.MSP_TTS_FLAG_DATA_END)
         {
             IntPtr source = MSC.QTTSAudioGet(sid, ref audio_len, ref synth_status, ref ret);
-            if (ret != (int)ErrorCode.MSP_SUCCESS) { Debug.Log("合成失败!" + ret); return; }
+            if (ret != (int)ErrorCode.MSP_SUCCESS) { Debug.Log("合成失败!" + ret); return synth_status; }
             byte[] array = new byte[(int)audio_len];
             if (audio_len > 0)
             {
@@ -263,6 +260,7 @@ public class VoiceManage
             }
             Thread.Sleep(100);
         }
+        
         //Debug.Log(string.Format("音频长度:byte[{0}],memoryStream[{1}]", audio_total_len, memoryStream.Length));
         //添加音频头,否则无法播放
         WAVE_Header wave_Header = getWave_Header((int)memoryStream.Length+44);
@@ -276,12 +274,8 @@ public class VoiceManage
             memoryStream.WriteTo(fileStream);
             memoryStream.Close();
             fileStream.Close();
-            waveOutDevice = new WaveOutEvent();
-            //waveOutDevice.PlaybackStopped += waveOutDevice_PlaybackStopped; 
-            audioFileReader = new AudioFileReader(Application.dataPath + "/Resources/Voice/" + filename);
-            waveOutDevice.Init(audioFileReader);
-            waveOutDevice.Play();
         }
+        return synth_status;
     }
 
     #region 通用方法
