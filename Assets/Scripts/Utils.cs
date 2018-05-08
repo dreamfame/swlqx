@@ -50,6 +50,26 @@ namespace Assets.Scripts
             var base64 = Convert.ToBase64String(plainTextBytes).Replace('+', '-').Replace('/', '_').TrimEnd('=');
             return base64;
         }
-
+        /// <summary>
+        /// 获取文件字符串
+        /// </summary>
+        /// <param name="filepath"></param>
+        /// <returns></returns>
+        public static string FileGetString(string filepath)
+        {
+            return File.ReadAllText(@filepath);
+        }
+        /// <summary>
+        /// 获取文件流大小
+        /// </summary>
+        /// <param name="sFullName"></param>
+        /// <returns></returns>
+        public static long GetFileSize(string sFullName)
+        {
+            long lSize = 0;
+            if (File.Exists(sFullName))
+                lSize = new FileInfo(sFullName).Length;
+            return lSize;
+        }
     }
 }

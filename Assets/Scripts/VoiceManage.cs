@@ -14,6 +14,10 @@ using NAudio.Wave;
 
 public class VoiceManage
 {
+    public VoiceManage()
+    {
+
+    }
 
     public static int ret = 0;
 
@@ -34,7 +38,10 @@ public class VoiceManage
 
     public static IWavePlayer waveOutDevice;
 
-    public static AudioFileReader audioFileReader; 
+    public static AudioFileReader audioFileReader;
+
+    private static string grammar_id;
+    private static int waitGrmBuildFlag;
 
     private class msp_login
     {
@@ -58,7 +65,7 @@ public class VoiceManage
             ret = MSC.MSPLogin(string.Empty, string.Empty, login_configs);//第一个参数为用户名，第二个参数为密码，第三个参数是登录参数，用户名和密码需要在http://open.voicecloud.cn  
             if (ret != (int)ErrorCode.MSP_SUCCESS) { Debug.Log("登陆失败!" + ret); return; }
             //string @params = "engine_type = cloud,voice_name=nannan,speed=50,volume=50,pitch=50,text_encoding =UTF8,background_sound=1,sample_rate=16000";
-            string @params = "engine_type = local, voice_name = xiaofeng, text_encoding = UTF8, tts_res_path = fo|res\\tts\\xiaoyan.jet;fo|res\\tts\\common.jet, sample_rate = 16000, speed = 50, volume = 50, pitch = 50, rdn = 1";
+            string @params = "engine_type = local, voice_name = xiaoyan, text_encoding = UTF8, tts_res_path = fo|res\\tts\\xiaoyan.jet;fo|res\\tts\\common.jet, sample_rate = 16000, speed = 50, volume = 50, pitch = 50, rdn = 1";
             sid = Ptr2Str(MSC.QTTSSessionBegin(@params, ref ret));
             Debug.Log(string.Format("-->开启一次语音合成[{0}]", sid));
             SpeechSynthesis(sid,text, name,path);
@@ -95,12 +102,39 @@ public class VoiceManage
             MSC.MSPLogout();
         }
     }
+    /// <summary>
+    /// 构建语法网络
+    /// </summary>
+    int GrammarBuild(string grm_type,string file)
+    {
+        string @params = "engine_type=local, sample_rate=16000, asr_res_path=fo|res/asr/common.jet, grm_build_path=res/asr/GrmBuilld";
+        //string @params = "engine_type=cloud,sample_rate=16000";
+        string grm_content = Utils.FileGetString(file);
+        uint grm_cnt_len = (uint)System.Text.Encoding.Default.GetBytes(grm_content).Length;
+        QISRUserData userdata = getUserData();
+        Debug.Log(grm_content);
+        return MSC.QISRBuildGrammar(grm_type, grm_content, grm_cnt_len, @params, grammarCallBack,ref userdata);
+    }
+    /// <summary>
+    /// 构建语法-回调函数
+    /// </summary>
+    /// <param name="errorCode"></param>
+    /// <param name="info"></param>
+    /// <param name="userData"></param>
+    /// <returns></returns>
+    static int grammarCallBack(int errorCode, string info,QISRUserData userData)
+    {
+        Debug.Log("语法构建结果:" + errorCode);
+        grammar_id = info;
+        waitGrmBuildFlag = 1;
+        return 0;
 
+    }
     /// <summary>
     /// 语音识别
     /// </summary>
     /// <returns>返回识别转换的文字</returns>
-    public static string VoiceDistinguish()
+    public string VoiceDistinguish()
     {
         string result_string = "";
         try
@@ -108,11 +142,19 @@ public class VoiceManage
             int retCode = MSC.MSPLogin(null, null, msp_login.APPID + ",work_dir = .");
             if (retCode != (int)ErrorCode.MSP_SUCCESS) { Debug.Log("登陆失败:" + retCode); return ""; }
             Debug.Log(string.Format("登陆成功,语音识别正在加载..."));
-            string session_params = "engine_type=cloud,sub = iat, domain = iat, language = zh_cn, accent = mandarin, sample_rate = 16000, result_type = plain, result_encoding = UTF-8 ,vad_eos = 5000";//可停止说话5秒保持语音识别状态
+            //离线构建语法网络
+            waitGrmBuildFlag = 0;
+            retCode = GrammarBuild("bnf", "call.bnf");
+            if (retCode != (int)ErrorCode.MSP_SUCCESS) { Debug.Log("语法构建失败:" + retCode); return string.Empty; }
+            while (waitGrmBuildFlag == 0){}//等待语法构建结果
+            //语音转文字
+            //string session_params = "engine_type=cloud,sub = iat, domain = iat, language = zh_cn, accent = mandarin, sample_rate = 16000, result_type = plain, result_encoding = UTF-8 ,vad_eos = 5000";//可停止说话5秒保持语音识别状态
+            string session_params = "engine_type=local,asr_threshold=0,asr_denoise=0,local_grammar = " + grammar_id + ",asr_res_path=fo|res/asr/common.jet,grm_build_path=res/asr/GrmBuilld, sample_rate = 16000, result_type = plain, result_encoding = UTF-8 ,vad_eos = 5000";//可停止说话5秒保持语音识别状态
             string sid = Ptr2Str(MSC.QISRSessionBegin(string.Empty, session_params, ref retCode));
             Debug.Log(string.Format("-->开启一次语音识别[{0}]", sid));
             if (retCode != (int)ErrorCode.MSP_SUCCESS) { Debug.Log("加载失败!"); return ""; }
             result_string = SpeechRecognition(sid);
+            Debug.Log("-->语音识别结果:" + result_string);
             MSC.QISRSessionEnd(sid, string.Empty);
         }
         catch (Exception e)
@@ -124,6 +166,18 @@ public class VoiceManage
             MSC.MSPLogout();
         }
         return result_string;
+    }
+
+    private QISRUserData getUserData()
+    {
+        return new QISRUserData
+        {
+            build_fini = 0,
+            update_fini = 0,
+            errcode = -1,
+            grammar_id = ""
+
+        };
     }
 
     /// <summary>
@@ -177,8 +231,8 @@ public class VoiceManage
     private static string SpeechRecognition(string sid)
     {
         Debug.Log("加载成功,正在开启话筒..");
-        //string file = mic.startRecording("rec");
-        //if (file == string.Empty) { return ""; }
+        string file = mic.startRecording("rec");
+        if (file == string.Empty) { return ""; }
         byte[] audio_buffer = GetFileData(Application.dataPath + "/Resources/Voice/rec.wav");
         long audio_size = audio_buffer.Length;
         long audio_count = 0;
@@ -299,6 +353,31 @@ public class VoiceManage
             waveOutDevice.Dispose();
         }     
     }
+    /// <summary>
+    /// 语音唤醒回调函数
+    /// </summary>
+    /// <param name="sessionID"></param>
+    /// <param name="msg"></param>
+    /// <param name="param1"></param>
+    /// <param name="param2"></param>
+    /// <param name="info"></param>
+    /// <param name="userData"></param>
+    /// <returns></returns>
+    static int registerCallback(string sessionID, msgProcCb msg, int param1, int param2, IntPtr info, IntPtr userData)
+    {
+        Debug.Log(string.Format("唤醒返回状态{0}", msg));
+        if (msgProcCb.MSP_IVW_MSG_ERROR == msg) //唤醒出错消息
+        {
+            isWakeUp = false;
+            Debug.Log(string.Format("{1} 唤醒失败({0})!", param1, DateTime.Now.Ticks));
+        }
+        else //唤醒成功消息
+        {
+            Debug.Log(string.Format("唤醒成功({0})!", info));
+            FlowManage.M2PMode(1);
+        }
+        return 0;
+    }
 
     #region 通用方法
 
@@ -410,34 +489,6 @@ public class VoiceManage
             Marshal.FreeHGlobal(buffer);
         }
     }
-
-
-    /// <summary>
-    /// 语音唤醒回调函数
-    /// </summary>
-    /// <param name="sessionID"></param>
-    /// <param name="msg"></param>
-    /// <param name="param1"></param>
-    /// <param name="param2"></param>
-    /// <param name="info"></param>
-    /// <param name="userData"></param>
-    /// <returns></returns>
-    static int registerCallback(string sessionID, msgProcCb msg, int param1, int param2, IntPtr info, IntPtr userData)
-    {
-        Debug.Log(string.Format("唤醒返回状态{0}", msg));
-        if (msgProcCb.MSP_IVW_MSG_ERROR == msg) //唤醒出错消息
-        {
-            isWakeUp = false;
-            Debug.Log(string.Format("{1} 唤醒失败({0})!", param1, DateTime.Now.Ticks));
-        }
-        else //唤醒成功消息
-        {
-            Debug.Log(string.Format("唤醒成功({0})!", info));
-            FlowManage.M2PMode(1);
-        }
-        return 0;
-    }
-
     /// <summary>
     /// 将文件转为byte[]
     /// </summary>

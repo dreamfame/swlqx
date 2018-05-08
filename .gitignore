@@ -3,26 +3,3 @@
 ################################################################################
 
 /.vs
-/Library/ShaderCache
-/Temp
-/obj
-/msc/60d4a5ee785e368e926ccf27f83036bc
-/QX.Editor.csproj
-/QX.csproj
-/UpgradeLog.htm
-/Assets/UnityVS
-/wav
-/Library/metadata
-/QX.userprefs
-/Assets/UnityVS.meta
-/Assets/Textures.meta
-/Assets/Model.meta
-/UpgradeLog5.htm
-/UpgradeLog4.htm
-/UpgradeLog3.htm
-/UpgradeLog2.htm
-Library/shadercompiler-UnityShaderCompiler.exe0.log
-*.data
-*.meta
-*.wav
-/msc/9a19242003121a1f60c3552283736a11

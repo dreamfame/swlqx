@@ -48,7 +48,7 @@ namespace Assets.Scripts
                 waveFile.Dispose();
                 waveFile = null;
             }
-            string result = VoiceManage.VoiceDistinguish();
+            string result = new VoiceManage().VoiceDistinguish();
             return result;
         }
 

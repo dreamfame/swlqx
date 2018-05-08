@@ -275,9 +275,19 @@ namespace Assets.Scripts
         MSP_IVW_MSG_ISR_EPS = 4         //唤醒+识别结果中vad 端点检测消息，param1 给出端点检测状态，状态值参见QISRAudioWrite接口中端点检测状态说明。
     }
 
-    public delegate int GrammarCallBack(int errorCode, string info, IntPtr userData);
+    public delegate int GrammarCallBack(int errorCode, string info,QISRUserData userData);
 
     public delegate int ivw_ntf_handler(string sessionID, msgProcCb msg, int param1, int param2, IntPtr info, IntPtr userData);
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct QISRUserData
+    {
+        public int build_fini;  //标识语法构建是否完成
+        public int update_fini; //标识更新词典是否完成
+        public int errcode; //记录语法构建或更新词典回调错误码
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32)]
+        public string grammar_id;//保存语法构建返回的语法ID
+    }
 
     public class MSC
 	{
@@ -313,7 +323,8 @@ namespace Assets.Scripts
         [DllImport("msc", CallingConvention = CallingConvention.Winapi)]
         public static extern int QISRAudioWrite(string sessionID,byte[] waveData, uint waveLen, audioStatus audioStatus,ref epStatus epStatus,ref rsltStatus recogStatus);
         [DllImport("msc", CallingConvention = CallingConvention.Winapi)]
-        public static extern int QISRBuildGrammar(string grammarType, string grammarContent, uint grammarLength, string _params,GrammarCallBack callback, IntPtr userData);
+        public static extern int QISRBuildGrammar(string grammarType, string grammarContent, uint grammarLength, string _params, GrammarCallBack callback,ref QISRUserData userData);
+        //public static extern int QISRBuildGrammar(string grammarType, string grammarContent, uint grammarLength, string _params,GrammarCallBack callback, IntPtr userData);
 
         //语音唤醒(QIVW)
         [DllImport("msc", CallingConvention = CallingConvention.Winapi)]
