@@ -6,6 +6,10 @@ using UnityEngine;
 using LitJson;
 using Assets.Scripts.SimHash;
 using System.Text.RegularExpressions;
+using Assets.UI;
+using System.Xml;
+using System.Threading;
+using NAudio.Wave;
 
 namespace Assets.Scripts
 {
@@ -21,13 +25,20 @@ namespace Assets.Scripts
 
         private static Animation characterAnimation;//神父人物模型动画对象
 
-        public static NAudioRecorder nar = new NAudioRecorder();
-
         public static int curNo;
 
         private static List<Answer> tempAnswer = new List<Answer>();
 
         private static main_test mt = Camera.main.GetComponent<main_test>();
+
+        private static VoiceManage vm = new VoiceManage();
+
+        public static IWavePlayer waveOutDevice;
+
+        public static AudioFileReader audioFileReader;
+
+        public static string content = "";
+        public static string name = "";
 
         /// <summary>
         /// 进入待机状态
@@ -58,7 +69,7 @@ namespace Assets.Scripts
         /// <param name="no">题号</param>
         public static void M2PMode(int no) 
         {
-            u.ShowM2PAnswerPanel();
+            //u.ShowM2PAnswerPanel();
             curNo = no;
             if (tempAnswer == null)
             {
@@ -71,8 +82,27 @@ namespace Assets.Scripts
                 u.M2P_Answer_Panel.transform.GetChild(curNo - 1).gameObject.transform.GetChild(0).GetComponent<UILabel>().text = "A." + tempAnswer[no - 1].answerA;
                 u.M2P_Answer_Panel.transform.GetChild(curNo - 1).gameObject.transform.GetChild(1).GetComponent<UILabel>().text = "B." + tempAnswer[no - 1].answerB;
                 u.M2P_Answer_Panel.transform.GetChild(curNo - 1).gameObject.transform.GetChild(2).GetComponent<UILabel>().text = "C." + tempAnswer[no - 1].answerC;
-                VoiceManage vm = new VoiceManage();
-                vm.PlayVoice(tempAnswer[no - 1].title, "subject" + no,Application.dataPath+"/Resources/Voice");
+                //vm.PlayVoice(tempAnswer[curNo - 1].title, "subject" + curNo, "Assets/Resources/Voice");
+                content = tempAnswer[curNo - 1].title;
+                name = "subject" + curNo;
+                Thread thread_question = new Thread(new ThreadStart(playVoice));
+                thread_question.IsBackground = true;
+                thread_question.Start();
+                FlowManage.StartUserAnswer();
+            }
+        }
+
+        static object obj = new object();
+
+        static void playVoice() 
+        {
+            lock (obj)
+            {
+                Debug.Log("内容是：" + content + "=====文件名是：" + name);
+                if (vm.PlayVoice(content, name, mt.voice_path) == SynthStatus.MSP_TTS_FLAG_DATA_END)
+                {
+                    mt.canPlay = true;
+                }
             }
         }
 
@@ -81,8 +111,7 @@ namespace Assets.Scripts
         /// </summary>
         public static void StartUserAnswer() 
         {
-            mt.isAnswer = true;
-            nar.StartRec();
+            mt.UserStartAnswer = true;
         }
 
         /// <summary>
@@ -90,8 +119,8 @@ namespace Assets.Scripts
         /// </summary>
         public static void P2MMode(NAudioRecorder n) 
         {
-            u.HideM2PAnswerPanel();
-            u.ShowP2MAskPanel();
+            //u.HideM2PAnswerPanel();
+            //u.ShowP2MAskPanel();
             Debug.Log("进入我问沙勿略模式");
             string result = n.StopRec();
             Debug.Log(string.Format("-->语音信息:{0}", result));
@@ -99,33 +128,65 @@ namespace Assets.Scripts
             {
                 u.P2M_Ask_Panel.transform.GetChild(4).gameObject.SetActive(true);
                 u.P2M_Ask_Panel.transform.GetChild(4).gameObject.GetComponent<UILabel>().text = "对不起，我没有听清您说的话！可以再说一次吗？";
+                vm.PlayVoice("对不起，我没有听清您说的话！可以再说一次吗？", "answer", Application.dataPath + "/Resources/Voice");
                 //mt.isFinished = true;
-                mt.flow_change = true;
             }
             else
             {
                 u.P2M_Ask_Panel.transform.GetChild(4).gameObject.SetActive(true);
                 u.P2M_Ask_Panel.transform.GetChild(4).gameObject.GetComponent<UILabel>().text = result;
-                mt.flow_change = true;
+                Debug.Log("小沙正在思考中...");
+                string answer_result = AIUI.HttpPost(AIUI.TEXT_SEMANTIC_API, "{\"userid\":\"test001\",\"scene\":\"main\"}", "text=" + Utils.Encode(result));
+                u.P2M_Ask_Panel.transform.GetChild(6).gameObject.SetActive(true);
+                u.P2M_Ask_Panel.transform.GetChild(6).gameObject.GetComponent<UILabel>().text = answer_result;
+                vm.PlayVoice(answer_result, "answer", Application.dataPath + "/Resources/Voice");
+                if (answer_result.Equals("这个问题我还不知道!")) 
+                {
+                    DateTime dateTime = new DateTime();
+                    dateTime = DateTime.Now;
+                    XmlDocument xmlDoc = new XmlDocument();
+                    xmlDoc.Load(Application.dataPath + "/Resources/Question/record.xml");
+                    XmlNode root = xmlDoc.SelectSingleNode("root");
+                    XmlElement xe1 = xmlDoc.CreateElement("问题");
+                    xe1.SetAttribute("内容", result);
+                    xe1.SetAttribute("时间", dateTime.ToString());
+                    root.AppendChild(xe1);
+                    xmlDoc.Save(Application.dataPath + "/Resources/Question/record.xml");
+                }
+                Debug.Log(string.Format("-->小沙回答:{0}", result));
             }
-            Debug.Log("小沙正在思考中...");
-            result = AIUI.HttpPost(AIUI.TEXT_SEMANTIC_API, "{\"userid\":\"test001\",\"scene\":\"main\"}", "text=" + Utils.Encode(result));
-            u.P2M_Ask_Panel.transform.GetChild(6).gameObject.SetActive(true);
-            u.P2M_Ask_Panel.transform.GetChild(6).gameObject.GetComponent<UILabel>().text = result;
-            Debug.Log(string.Format("-->小沙回答:{0}", result));
+            mt.FinishedAnswer = true;
             //结束界面
             //进入唤醒状态
+        }
+
+        public static void PlayTransitVoice(int Mode,string txt) 
+        {
+            if (Mode == 1) //播放进入沙勿略问我模式语音
+            {
+
+            }
+            else if (Mode == 2) //播放进入我问沙勿略模式语音
+            {
+                mt.isTransit = true;
+                content = txt;
+                name = "transit";
+            }
+            Thread thread_transit = new Thread(new ThreadStart(playVoice));
+            thread_transit.IsBackground = true;
+            thread_transit.Start();
         }
 
         /// <summary>
         /// 停止回答（沙勿略问我）
         /// </summary>
-        public static void StopAnswer() 
+        public static void StopAnswer(NAudioRecorder nar) 
         {
             if (nar.waveSource != null)
             {
-                VoiceManage vm = new VoiceManage();
                 string retString = nar.StopRec();
+                Debug.Log("回答的是："+retString);
+                mt.AnswerAnalysis = true;
                 if (retString != "")
                 {
                     string HayStack = retString;
@@ -134,9 +195,11 @@ namespace Assets.Scripts
                     string answerStr = m.Value.ToUpper().Trim();
                     Debug.Log("回答的是：" + answerStr);
                     string Needle = tempAnswer[curNo - 1].CorrectAnswer;
-                    if (answerStr.Equals(Needle) || Needle.Contains(answerStr))
+                    if (answerStr.Equals(Needle) || Needle.Contains(answerStr)&&answerStr!="")
                     {
                         Debug.Log("回答正确");
+                        content = "恭喜你，回答正确";
+                        name = "correct";
                         u.M2P_Answer_Panel.transform.GetChild(5).gameObject.GetComponent<UILabel>().text = "回答正确";
                         if (Needle == "A") 
                         {
@@ -166,6 +229,8 @@ namespace Assets.Scripts
                     else
                     {
                         Debug.Log("回答错误");
+                        content = "很遗憾，回答错误，正确答案是" + Needle;
+                        name = "wrong";
                         u.M2P_Answer_Panel.transform.GetChild(5).gameObject.GetComponent<UILabel>().text = "回答错误";
                         if (Needle == "A")
                         {
@@ -213,9 +278,14 @@ namespace Assets.Scripts
                 }
                 else
                 {
+                    content = "抱歉,您说了什么，我没有听清";
+                    name = "sorry"; 
                     Debug.Log("抱歉,您说了什么，我没有听清");
                     u.M2P_Answer_Panel.transform.GetChild(5).gameObject.GetComponent<UILabel>().text = "抱歉,您说了什么，我没有听清";
                 }
+                Thread thread_analysis = new Thread(new ThreadStart(playVoice));
+                thread_analysis.IsBackground = true;
+                thread_analysis.Start();
             }
         }
 	}

@@ -19,21 +19,33 @@ public class main_test : MonoBehaviour {
 
     public float answer_time = 0f;
 
+    public bool UserStartAnswer = false;
+
     public bool isAnswer = false;
+
+    public bool AnswerAnalysis = false;
 
     public bool AskMode = false;
 
     public bool flow_change = false;
 
+    public bool FinishedAnswer = false;
+
+    public bool canPlay = false;
+
     public float wait_time = 0f;
 
     public bool isFinished = false;
+
+    public bool isTransit = false;
 
     MicManage mic;
 
     NAudioRecorder nar = new NAudioRecorder();
 
     public float once_ask_time = 0f;
+
+    public string voice_path = "";
 
 	// Use this for initialization
 	void Start () {
@@ -43,6 +55,104 @@ public class main_test : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
+        if (canPlay) 
+        {
+            canPlay = false;
+            FlowManage.waveOutDevice = new WaveOutEvent();
+            //waveOutDevice.PlaybackStopped += waveOutDevice_PlaybackStopped; 
+            FlowManage.audioFileReader = new AudioFileReader(voice_path + "/" + FlowManage.name + ".wav");
+            FlowManage.waveOutDevice.Init(FlowManage.audioFileReader);
+            FlowManage.waveOutDevice.Play();
+        }
+        if (FlowManage.waveOutDevice != null)//音频播放完毕后开始答题
+        {
+            if (UserStartAnswer)
+            {
+                if (FlowManage.waveOutDevice.PlaybackState == PlaybackState.Stopped)
+                {
+                    UserStartAnswer = false;
+                    Debug.Log("开始答题");
+                    isAnswer = true;
+                    if (FlowManage.waveOutDevice != null)
+                    {
+                        FlowManage.waveOutDevice.Dispose();
+                        FlowManage.waveOutDevice = null;
+                    }
+                    if (FlowManage.audioFileReader != null)
+                    {
+                        FlowManage.audioFileReader.Close();
+                        FlowManage.audioFileReader = null;
+                    }
+                    nar.StartRec();
+                }
+            }
+            if (AnswerAnalysis) //沙勿略问我模式答题后给出答案解析
+            {
+                if (FlowManage.waveOutDevice.PlaybackState == PlaybackState.Stopped)
+                {
+                    if (FlowManage.waveOutDevice != null)
+                    {
+                        FlowManage.waveOutDevice.Dispose();
+                        FlowManage.waveOutDevice = null;
+                    }
+                    if (FlowManage.audioFileReader != null)
+                    {
+                        FlowManage.audioFileReader.Close();
+                        FlowManage.audioFileReader = null;
+                    }
+                    Debug.Log("完成答案解析，进入下一题");
+                    AnswerAnalysis = false;
+                    int questionNo = FlowManage.curNo;
+                    questionNo++;
+                    if (questionNo <= 3)
+                    {
+                        FlowManage.M2PMode(questionNo);
+                    }
+                    else 
+                    {
+                        FlowManage.PlayTransitVoice(2, "下面进入我问沙勿略环节。");                
+                    }
+                }
+            }
+            if (isTransit) //流程过渡播放声音
+            {
+                if (FlowManage.waveOutDevice.PlaybackState == PlaybackState.Stopped)
+                {
+                    if (FlowManage.waveOutDevice != null)
+                    {
+                        FlowManage.waveOutDevice.Dispose();
+                        FlowManage.waveOutDevice = null;
+                    }
+                    if (FlowManage.audioFileReader != null)
+                    {
+                        FlowManage.audioFileReader.Close();
+                        FlowManage.audioFileReader = null;
+                    }
+                    isTransit = false;
+                    Debug.Log("完成过渡");
+                    flow_change = true;
+                }
+            }
+            if (FinishedAnswer) //我问沙勿略环节回答完毕
+            {
+                if (FlowManage.waveOutDevice.PlaybackState == PlaybackState.Stopped)
+                {
+                    if (FlowManage.waveOutDevice != null)
+                    {
+                        FlowManage.waveOutDevice.Dispose();
+                        FlowManage.waveOutDevice = null;
+                    }
+                    if (FlowManage.audioFileReader != null)
+                    {
+                        FlowManage.audioFileReader.Close();
+                        FlowManage.audioFileReader = null;
+                    }
+                    FinishedAnswer = false;
+                    Debug.Log("回答完毕");
+                    flow_change = true;
+                }
+            }
+        }
         if (Input.GetMouseButtonDown(2)) 
         {         
             nar.StartRec();
@@ -53,6 +163,7 @@ public class main_test : MonoBehaviour {
         }
         if (Input.GetMouseButtonDown(1)) 
         {
+            //StartCoroutine(EnterM2MMode());
             FlowManage.M2PMode(1);
         }
         if (isAnswer)
@@ -60,35 +171,16 @@ public class main_test : MonoBehaviour {
             answer_time += Time.deltaTime;
             if (answer_time >= 10)
             {
-                int questionNo = FlowManage.curNo;
-                questionNo++;
-                if (questionNo <= 3)
-                {
-                    isAnswer = false;
-                    answer_time = 0f;
-                    FlowManage.StopAnswer();
-                    FlowManage.M2PMode(questionNo);
-                }
-                else
-                {
-                    answer_time = 0f;
-                    isAnswer = false;
-                    flow_change = true;
-                    FlowManage.StopAnswer();
-                }
+                isAnswer = false;
+                answer_time = 0f;
+                FlowManage.StopAnswer(nar);
             }
         }
         if (flow_change) 
         {
-            wait_time += Time.deltaTime;
-            if (wait_time >= 5) 
-            {
-                Debug.Log("监听中...");
-                wait_time = 0f;
-                flow_change = false;
-                AskMode = true;
-                nar.StartRec();
-            }
+           flow_change = false;
+           AskMode = true;
+           nar.StartRec();
         }
         
         if (AskMode) 
@@ -109,12 +201,18 @@ public class main_test : MonoBehaviour {
         }
 	}
 
+    IEnumerator EnterM2MMode() 
+    {
+        yield return new WaitForSeconds(3);
+        FlowManage.M2PMode(1);
+    }
+
     /// <summary>
     /// 系统初始化
     /// </summary>
     public void init()
     {
-        DelectDir(Application.dataPath + "/Resources/Voice");
+        voice_path = Application.dataPath + "/Resources/Voice";
         if (CharacterModel == null)
         {
             Debug.Log("加载人物模型失败");
@@ -150,46 +248,20 @@ public class main_test : MonoBehaviour {
         FlowManage.EnterStandBy(CharacterModel);
     }
 
-    public static void DelectDir(string srcPath)
-    {
-        try
-        {
-            DirectoryInfo dir = new DirectoryInfo(srcPath);
-            FileSystemInfo[] fileinfo = dir.GetFileSystemInfos();  //返回目录中所有文件和子目录
-            foreach (FileSystemInfo i in fileinfo)
-            {
-                if (i is DirectoryInfo)            //判断是否文件夹
-                {
-                    DirectoryInfo subdir = new DirectoryInfo(i.FullName);
-                    subdir.Delete(true);          //删除子目录和文件
-                }
-                else
-                {
-                    File.Delete(i.FullName);      //删除指定文件
-                }
-            }
-        }
-        catch (Exception e)
-        {
-            throw;
-        }
-    }
-
     void OnApplicationQuit()
     {
-        NAudioRecorder nar = new NAudioRecorder();
         if (nar.waveSource != null)
         {
             nar.StopRec();
         }
-        if (VoiceManage.waveOutDevice != null)
+        if (FlowManage.waveOutDevice != null)
         {
-            VoiceManage.waveOutDevice.Stop();
+            FlowManage.waveOutDevice.Stop();
         }
-        if (VoiceManage.waveOutDevice != null)
+        if (FlowManage.waveOutDevice != null)
         {
-            VoiceManage.waveOutDevice.Dispose();
-            VoiceManage.waveOutDevice = null;
+            FlowManage.waveOutDevice.Dispose();
+            FlowManage.waveOutDevice = null;
         }
     }
 }
