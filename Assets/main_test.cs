@@ -116,21 +116,24 @@ public class main_test : MonoBehaviour {
             }
             if (isTransit) //流程过渡播放声音
             {
-                if (FlowManage.waveOutDevice.PlaybackState == PlaybackState.Stopped)
+                if (FlowManage.waveOutDevice != null)
                 {
-                    if (FlowManage.waveOutDevice != null)
+                    if (FlowManage.waveOutDevice.PlaybackState == PlaybackState.Stopped)
                     {
-                        FlowManage.waveOutDevice.Dispose();
-                        FlowManage.waveOutDevice = null;
+                        if (FlowManage.waveOutDevice != null)
+                        {
+                            FlowManage.waveOutDevice.Dispose();
+                            FlowManage.waveOutDevice = null;
+                        }
+                        if (FlowManage.audioFileReader != null)
+                        {
+                            FlowManage.audioFileReader.Close();
+                            FlowManage.audioFileReader = null;
+                        }
+                        isTransit = false;
+                        Debug.Log("完成过渡");
+                        flow_change = true;
                     }
-                    if (FlowManage.audioFileReader != null)
-                    {
-                        FlowManage.audioFileReader.Close();
-                        FlowManage.audioFileReader = null;
-                    }
-                    isTransit = false;
-                    Debug.Log("完成过渡");
-                    flow_change = true;
                 }
             }
             if (FinishedAnswer) //我问沙勿略环节回答完毕

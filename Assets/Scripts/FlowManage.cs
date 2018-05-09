@@ -128,7 +128,8 @@ namespace Assets.Scripts
             {
                 u.P2M_Ask_Panel.transform.GetChild(4).gameObject.SetActive(true);
                 u.P2M_Ask_Panel.transform.GetChild(4).gameObject.GetComponent<UILabel>().text = "对不起，我没有听清您说的话！可以再说一次吗？";
-                vm.PlayVoice("对不起，我没有听清您说的话！可以再说一次吗？", "answer", Application.dataPath + "/Resources/Voice");
+                content = "对不起，我没有听清您说的话！可以再说一次吗？";
+                name = "answer";
                 //mt.isFinished = true;
             }
             else
@@ -139,7 +140,8 @@ namespace Assets.Scripts
                 string answer_result = AIUI.HttpPost(AIUI.TEXT_SEMANTIC_API, "{\"userid\":\"test001\",\"scene\":\"main\"}", "text=" + Utils.Encode(result));
                 u.P2M_Ask_Panel.transform.GetChild(6).gameObject.SetActive(true);
                 u.P2M_Ask_Panel.transform.GetChild(6).gameObject.GetComponent<UILabel>().text = answer_result;
-                vm.PlayVoice(answer_result, "answer", Application.dataPath + "/Resources/Voice");
+                content = answer_result;
+                name = "answer";
                 if (answer_result.Equals("这个问题我还不知道!")) 
                 {
                     DateTime dateTime = new DateTime();
@@ -155,6 +157,9 @@ namespace Assets.Scripts
                 }
                 Debug.Log(string.Format("-->小沙回答:{0}", result));
             }
+            Thread thread_answer = new Thread(new ThreadStart(playVoice));
+            thread_answer.IsBackground = true;
+            thread_answer.Start();
             mt.FinishedAnswer = true;
             //结束界面
             //进入唤醒状态
@@ -168,13 +173,13 @@ namespace Assets.Scripts
             }
             else if (Mode == 2) //播放进入我问沙勿略模式语音
             {
-                mt.isTransit = true;
                 content = txt;
                 name = "transit";
             }
             Thread thread_transit = new Thread(new ThreadStart(playVoice));
             thread_transit.IsBackground = true;
             thread_transit.Start();
+            mt.isTransit = true;
         }
 
         /// <summary>
