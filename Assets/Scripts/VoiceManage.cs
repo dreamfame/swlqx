@@ -108,9 +108,9 @@ public class VoiceManage
     /// </summary>
     int GrammarBuild(string grm_type,string file)
     {
-        string @params = "engine_type=local, sample_rate=16000, asr_res_path=fo|res/asr/common.jet, grm_build_path=res/asr/GrmBuilld";
+        string @params = "engine_type=local,asr_res_path=fo|res/asr/common.jet, sample_rate=16000, grm_build_path=res/asr/GrmBuilld";
         //string @params = "engine_type=cloud,sample_rate=16000";
-        string grm_content = Utils.FileGetString(file);
+        string grm_content = File.ReadAllText(@"call.bnf", Encoding.Default);
         uint grm_cnt_len = (uint)System.Text.Encoding.Default.GetBytes(grm_content).Length;
         QISRUserData userdata = getUserData();
         Debug.Log(grm_content);
@@ -129,8 +129,8 @@ public class VoiceManage
         grammar_id = info;
         waitGrmBuildFlag = 1;
         return 0;
-
     }
+
     /// <summary>
     /// 语音识别
     /// </summary>
@@ -144,13 +144,14 @@ public class VoiceManage
             if (retCode != (int)ErrorCode.MSP_SUCCESS) { Debug.Log("登陆失败:" + retCode); return ""; }
             Debug.Log(string.Format("登陆成功,语音识别正在加载..."));
             //离线构建语法网络
-            waitGrmBuildFlag = 0;
-            retCode = GrammarBuild("bnf", "call.bnf");
+            //waitGrmBuildFlag = 0;
+            //retCode = GrammarBuild("bnf", "call.bnf");
+            //Debug.Log("返回码是：" + retCode);
             if (retCode != (int)ErrorCode.MSP_SUCCESS) { Debug.Log("语法构建失败:" + retCode); return string.Empty; }
-            while (waitGrmBuildFlag == 0){}//等待语法构建结果
+            //while (waitGrmBuildFlag == 0){}//等待语法构建结果
             //语音转文字
-            //string session_params = "engine_type=cloud,sub = iat, domain = iat, language = zh_cn, accent = mandarin, sample_rate = 16000, result_type = plain, result_encoding = UTF-8 ,vad_eos = 5000";//可停止说话5秒保持语音识别状态
-            string session_params = "engine_type=local,asr_threshold=0,asr_denoise=0,local_grammar = " + grammar_id + ",asr_res_path=fo|res/asr/common.jet,grm_build_path=res/asr/GrmBuilld, sample_rate = 16000, result_type = plain, result_encoding = UTF-8 ,vad_eos = 5000";//可停止说话5秒保持语音识别状态
+            string session_params = "engine_type=cloud,sub = iat, domain = iat, language = zh_cn, accent = mandarin, sample_rate = 16000, result_type = plain, result_encoding = UTF-8 ,vad_eos = 5000";//可停止说话5秒保持语音识别状态
+            //string session_params = "engine_type=local,asr_threshold=0,asr_denoise=0,local_grammar = " + grammar_id + ",asr_res_path=fo|res/asr/common.jet,grm_build_path=res/asr/GrmBuilld, sample_rate = 16000, result_type = plain, result_encoding = GB2312 ,vad_eos = 5000";//可停止说话5秒保持语音识别状态
             string sid = Ptr2Str(MSC.QISRSessionBegin(string.Empty, session_params, ref retCode));
             Debug.Log(string.Format("-->开启一次语音识别[{0}]", sid));
             if (retCode != (int)ErrorCode.MSP_SUCCESS) { Debug.Log("加载失败!"); return ""; }
@@ -332,29 +333,10 @@ public class VoiceManage
             memoryStream.WriteTo(fileStream);
             memoryStream.Close();
             fileStream.Close();
-            waveOutDevice = new WaveOut();
-            //waveOutDevice.PlaybackStopped += waveOutDevice_PlaybackStopped; 
-            audioFileReader = new AudioFileReader(Application.dataPath + "/Resources/Voice/" + filename);
-            waveOutDevice.Init(audioFileReader);
-            waveOutDevice.Play();
-            FlowManage.StartUserAnswer();
         }
+        return synth_status;
     }
 
-    /// <summary>
-    /// 音频播放结束回调函数
-    /// </summary>
-    /// <param name="sender"></param>
-    /// <param name="e"></param>
-    private void waveOutDevice_PlaybackStopped(object sender, EventArgs e)
-    {
-        if (waveOutDevice != null)
-        {
-            Debug.Log("开始答题");
-            FlowManage.StartUserAnswer();
-            waveOutDevice.Dispose();
-        }     
-    }
     /// <summary>
     /// 语音唤醒回调函数
     /// </summary>

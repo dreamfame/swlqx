@@ -169,12 +169,13 @@ namespace Assets.Scripts
         {
             if (Mode == 1) //播放进入沙勿略问我模式语音
             {
-
+                content = txt;
+                name = "transit1";
             }
             else if (Mode == 2) //播放进入我问沙勿略模式语音
             {
                 content = txt;
-                name = "transit";
+                name = "transit2";
             }
             Thread thread_transit = new Thread(new ThreadStart(playVoice));
             thread_transit.IsBackground = true;

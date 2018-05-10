@@ -39,6 +39,8 @@ public class main_test : MonoBehaviour {
 
     public bool isTransit = false;
 
+    private int curMode = 0;
+
     MicManage mic;
 
     NAudioRecorder nar = new NAudioRecorder();
@@ -55,7 +57,7 @@ public class main_test : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-        if (canPlay) 
+        if (canPlay) //语音合成完毕并生成音频后播放
         {
             canPlay = false;
             FlowManage.waveOutDevice = new WaveOutEvent();
@@ -110,6 +112,7 @@ public class main_test : MonoBehaviour {
                     }
                     else 
                     {
+                        curMode = 2;
                         FlowManage.PlayTransitVoice(2, "下面进入我问沙勿略环节。");                
                     }
                 }
@@ -167,7 +170,9 @@ public class main_test : MonoBehaviour {
         if (Input.GetMouseButtonDown(1)) 
         {
             //StartCoroutine(EnterM2MMode());
-            FlowManage.M2PMode(1);
+            curMode = 1;
+            FlowManage.PlayTransitVoice(1, "下面进入沙勿略问我环节。");
+            //FlowManage.M2PMode(1);
         }
         if (isAnswer)
         {
@@ -181,9 +186,16 @@ public class main_test : MonoBehaviour {
         }
         if (flow_change) 
         {
-           flow_change = false;
-           AskMode = true;
-           nar.StartRec();
+            flow_change = false;
+            if (curMode == 1) 
+            {
+                FlowManage.M2PMode(1);
+            }
+            else if (curMode == 2) 
+            {      
+                AskMode = true;
+                nar.StartRec();
+            }
         }
         
         if (AskMode) 
@@ -215,6 +227,7 @@ public class main_test : MonoBehaviour {
     /// </summary>
     public void init()
     {
+        curMode = 0;
         voice_path = Application.dataPath + "/Resources/Voice";
         if (CharacterModel == null)
         {
