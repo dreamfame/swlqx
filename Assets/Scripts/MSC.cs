@@ -317,11 +317,11 @@ namespace Assets.Scripts
         [DllImport("msc", CallingConvention = CallingConvention.Winapi)]
         public static extern IntPtr QISRSessionBegin(string grammarList, string _params,ref int errorCode);
         [DllImport("msc", CallingConvention = CallingConvention.Winapi)]
-        public static extern IntPtr QISRGetResult(string sessionID,ref rsltStatus rsltStatus, int waitTime,ref int errorCode);
+        public static extern IntPtr QISRGetResult(string sessionID,ref RecogStatus rsltStatus, int waitTime,ref int errorCode);
         [DllImport("msc", CallingConvention = CallingConvention.Winapi)]
         public static extern int QISRSessionEnd(string sessionID, string hints);
         [DllImport("msc", CallingConvention = CallingConvention.Winapi)]
-        public static extern int QISRAudioWrite(string sessionID,byte[] waveData, uint waveLen, audioStatus audioStatus,ref epStatus epStatus,ref rsltStatus recogStatus);
+        public static extern int QISRAudioWrite(string sessionID, IntPtr waveData, uint waveLen, audioStatus audioStatus, ref epStatus epStatus, ref RecogStatus recogStatus);
         [DllImport("msc", CallingConvention = CallingConvention.Winapi)]
         public static extern int QISRBuildGrammar(string grammarType, string grammarContent, uint grammarLength, string _params, GrammarCallBack callback,ref QISRUserData userData);
         //public static extern int QISRBuildGrammar(string grammarType, string grammarContent, uint grammarLength, string _params,GrammarCallBack callback, IntPtr userData);

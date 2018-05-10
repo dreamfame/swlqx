@@ -5,6 +5,7 @@ using System.Text;
 using NAudio;
 using NAudio.Wave;
 using UnityEngine;
+using System.Runtime.InteropServices;
 
 namespace Assets.Scripts
 {
@@ -48,8 +49,8 @@ namespace Assets.Scripts
                 waveFile.Dispose();
                 waveFile = null;
             }
-            string result = new VoiceManage().VoiceDistinguish();
-            return result;
+            //string result = new VoiceManage().VoiceDistinguish();
+            return "";
         }
 
         /// <summary>
@@ -72,6 +73,7 @@ namespace Assets.Scripts
             {
                 waveFile.Write(e.Buffer, 0, e.BytesRecorded);
                 waveFile.Flush();
+                VoiceManage.SaveDataToArea(waveSource, e.Buffer, e.BytesRecorded);
             }
         }
 

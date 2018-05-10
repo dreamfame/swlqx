@@ -23,11 +23,14 @@ public class VoiceManage
 
     private static MicManage mic = new MicManage(Camera.main.GetComponent<AudioSource>());
 
-    private static NAudioRecorder nar = new NAudioRecorder();
+    public static NAudioRecorder nar = new NAudioRecorder();
+
+    private static main_test mt = Camera.main.GetComponent<main_test>();
 
     private static audioStatus audio_stat = audioStatus.MSP_AUDIO_SAMPLE_FIRST;
 
     public static epStatus ep_status = epStatus.MSP_EP_NULL;
+    public static RecogStatus recoStatus = RecogStatus.ISR_REC_NULL;
     public static rsltStatus rec_status = rsltStatus.MSP_REC_STATUS_SUCCESS;
     public static SynthStatus synth_status = SynthStatus.MSP_TTS_FLAG_STILL_HAVE_DATA;
 
@@ -44,6 +47,8 @@ public class VoiceManage
     private static string grammar_id;
     private static int waitGrmBuildFlag;
 
+    private static string sid = "";
+
     private class msp_login
     {
         public static string APPID = "appid = 5ae7ea3a";
@@ -59,7 +64,6 @@ public class VoiceManage
     /// <param name="path">音频存放地址</param>
     public SynthStatus PlayVoice(string text, string name, string path)
     {
-        string sid = string.Empty;
         try
         {
             string login_configs = msp_login.APPID+", work_dir = .";//登录参数,自己注册后获取的appid  
@@ -89,7 +93,7 @@ public class VoiceManage
             int retCode = MSC.MSPLogin(null, null, msp_login.APPID + ",engine_start = ivw,ivw_res_path =fo|res/ivw/wakeupresource.jet,work_dir = .");
             if (retCode != (int)ErrorCode.MSP_SUCCESS) { Debug.Log("登陆失败!"); return; }
             Debug.Log(string.Format("{0} 登陆成功,正在开启引擎..", DateTime.Now.Ticks));
-            string sid = Ptr2Str(MSC.QIVWSessionBegin(string.Empty, "sst=wakeup,ivw_threshold=0:-20", ref retCode));
+            sid = Ptr2Str(MSC.QIVWSessionBegin(string.Empty, "sst=wakeup,ivw_threshold=0:-20", ref retCode));
             if (retCode != (int)ErrorCode.MSP_SUCCESS) { Debug.Log("开启失败!"); return; }
             Debug.Log(string.Format("{1} 开启成功[{0}],正在注册..", sid, DateTime.Now.Ticks));
             retCode = MSC.QIVWRegisterNotify(sid, registerCallback, new IntPtr());
@@ -152,10 +156,11 @@ public class VoiceManage
             //语音转文字
             string session_params = "engine_type=cloud,sub = iat, domain = iat, language = zh_cn, accent = mandarin, sample_rate = 16000, result_type = plain, result_encoding = UTF-8 ,vad_eos = 5000";//可停止说话5秒保持语音识别状态
             //string session_params = "engine_type=local,asr_threshold=0,asr_denoise=0,local_grammar = " + grammar_id + ",asr_res_path=fo|res/asr/common.jet,grm_build_path=res/asr/GrmBuilld, sample_rate = 16000, result_type = plain, result_encoding = GB2312 ,vad_eos = 5000";//可停止说话5秒保持语音识别状态
-            string sid = Ptr2Str(MSC.QISRSessionBegin(string.Empty, session_params, ref retCode));
+            sid = Ptr2Str(MSC.QISRSessionBegin(string.Empty, session_params, ref retCode));
             Debug.Log(string.Format("-->开启一次语音识别[{0}]", sid));
             if (retCode != (int)ErrorCode.MSP_SUCCESS) { Debug.Log("加载失败!"); return ""; }
-            result_string = SpeechRecognition(sid);
+            nar.StartRec();
+            result_string = "";//SpeechRecognition(sid);
             Debug.Log("-->语音识别结果:" + result_string);
             MSC.QISRSessionEnd(sid, string.Empty);
         }
@@ -168,6 +173,30 @@ public class VoiceManage
             MSC.MSPLogout();
         }
         return result_string;
+    }
+
+    public static void SaveDataToArea(WaveIn wis,byte[] buffer,int bytesData) 
+    {
+        int ret = -1;
+        int audio_rate = 16000;
+        int audio_byte = 16;
+        wis.BufferMilliseconds = 500;
+        IntPtr bp = Marshal.AllocHGlobal(bytesData);
+        Marshal.Copy(buffer, 0, bp, bytesData);
+        uint bytelength = (uint)(audio_rate * (audio_byte / 8) * ((float)wis.BufferMilliseconds / 1000)); ;
+        if (ep_status == epStatus.MSP_EP_NULL)
+        {
+            ret = MSC.QISRAudioWrite(sid, bp, bytelength, audioStatus.MSP_AUDIO_SAMPLE_FIRST, ref ep_status, ref recoStatus);
+        }
+        else if (ep_status == epStatus.MSP_EP_LOOKING_FOR_SPEECH)
+        {
+            ret = MSC.QISRAudioWrite(sid, bp, bytelength, audioStatus.MSP_AUDIO_SAMPLE_CONTINUE, ref ep_status, ref recoStatus);
+        }
+        else if (ep_status == epStatus.MSP_EP_IN_SPEECH)
+        {
+            ret = MSC.QISRAudioWrite(sid, bp, bytelength, audioStatus.MSP_AUDIO_SAMPLE_LAST, ref ep_status, ref recoStatus);
+        }
+        Marshal.FreeHGlobal(bp);
     }
 
     private QISRUserData getUserData()
@@ -230,16 +259,14 @@ public class VoiceManage
     /// 语音识别方法
     /// </summary>
     /// <param name="sid"></param>
-    private static string SpeechRecognition(string sid)
+    public static string SpeechRecognition()
     {
-        Debug.Log("加载成功,正在开启话筒..");
-        string file = mic.startRecording("rec");
-        if (file == string.Empty) { return ""; }
-        byte[] audio_buffer = GetFileData(Application.dataPath + "/Resources/Voice/rec.wav");
-        long audio_size = audio_buffer.Length;
-        long audio_count = 0;
-        string rec_result = string.Empty;
-        ep_status = epStatus.MSP_EP_LOOKING_FOR_SPEECH;
+        string rec_result = String.Empty;
+        /*byte[] audio_buffer = GetFileData(mt.voice_path+"/rec.wav");
+        //long audio_size = audio_buffer.Length;
+        //long audio_count = 0;
+        //string rec_result = string.Empty;
+        //ep_status = epStatus.MSP_EP_LOOKING_FOR_SPEECH;
         //if (ep_status == epStatus.MSP_EP_AFTER_SPEECH || ep_status == epStatus.MSP_EP_TIMEOUT)
         //{
         while (epStatus.MSP_EP_AFTER_SPEECH != ep_status)
@@ -253,9 +280,9 @@ public class VoiceManage
             ret = MSC.QISRAudioWrite(sid, audio_buffer.Skip((int)audio_count).Take((int)len).ToArray(), (uint)len, audio_stat, ref ep_status, ref rec_status);
             if (ret != (int)ErrorCode.MSP_SUCCESS) { Debug.Log(string.Format("读取音频失败:{0}!", ret)); return ""; }
             audio_count += len;
-            audio_size -= len;
+            audio_size -= len;           
             if (rec_status == rsltStatus.MSP_REC_STATUS_SUCCESS)
-            {
+            {                
                 IntPtr p = MSC.QISRGetResult(sid, ref rec_status, 0, ref ret);
                 if (ret != (int)ErrorCode.MSP_SUCCESS) { Debug.Log(string.Format("无法识别:{0}!", ret)); return ""; }
                 Debug.Log(Ptr2Str(p));
@@ -270,13 +297,13 @@ public class VoiceManage
                     }
                 }
             }
-        }
+        }*/
         Debug.Log(string.Format("录制完毕,正在识别中..."));
-        ret = MSC.QISRAudioWrite(sid, null, 0, audioStatus.MSP_AUDIO_SAMPLE_LAST, ref ep_status, ref rec_status);
+        ret = MSC.QISRAudioWrite(sid, IntPtr.Zero, 0, audioStatus.MSP_AUDIO_SAMPLE_LAST, ref ep_status, ref recoStatus);
         if (ret != (int)ErrorCode.MSP_SUCCESS) { Debug.Log(string.Format("识别音频失败:{0}!", ret)); return ""; }
-        while (rsltStatus.MSP_REC_STATUS_COMPLETE != rec_status)
+        while (RecogStatus.ISR_REC_STATUS_SPEECH_COMPLETE != recoStatus)
         {
-            IntPtr rslt = MSC.QISRGetResult(sid, ref rec_status, 0, ref ret);
+            IntPtr rslt = MSC.QISRGetResult(sid, ref recoStatus, 0, ref ret);
             if (ret != (int)ErrorCode.MSP_SUCCESS) { Debug.Log(string.Format("音频无法识别:{0}!", ret)); return ""; }
 
             if (rslt != IntPtr.Zero)

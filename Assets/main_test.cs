@@ -57,6 +57,25 @@ public class main_test : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
+        if (VoiceManage.ep_status == epStatus.MSP_EP_AFTER_SPEECH || VoiceManage.ep_status == epStatus.MSP_EP_TIMEOUT)
+        {
+            VoiceManage.ep_status = epStatus.MSP_EP_NULL;
+            String result = VoiceManage.SpeechRecognition();
+            Debug.Log("实时识别结果是："+result);
+        }
+        if (Input.GetKeyDown(KeyCode.R)) 
+        {
+            Debug.Log("开始识别");
+            VoiceManage vm = new VoiceManage();
+            vm.VoiceDistinguish();
+        }
+        if (Input.GetKeyDown(KeyCode.T)) 
+        {
+            Debug.Log("停止录音");
+            VoiceManage.nar.StopRec();
+        }
+
+
         if (canPlay) //语音合成完毕并生成音频后播放
         {
             canPlay = false;
@@ -215,12 +234,6 @@ public class main_test : MonoBehaviour {
             init();
         }
 	}
-
-    IEnumerator EnterM2MMode() 
-    {
-        yield return new WaitForSeconds(3);
-        FlowManage.M2PMode(1);
-    }
 
     /// <summary>
     /// 系统初始化
