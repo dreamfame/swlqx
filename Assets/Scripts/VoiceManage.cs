@@ -1,24 +1,16 @@
-﻿using System.Collections;
+﻿using Assets.Scripts;
+using NAudio.Wave;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Runtime.InteropServices;
 using System.IO;
+using System.Linq;
+using System.Runtime.InteropServices;
+using System.Text;
 using System.Threading;
-using Assets.Scripts;
 using UnityEngine;
-using NAudio;
-using NAudio.Wave;
 
 public class VoiceManage
 {
-    public VoiceManage()
-    {
-
-    }
-
     public static int ret = 0;
 
     private static MicManage mic = new MicManage(Camera.main.GetComponent<AudioSource>());
@@ -75,7 +67,7 @@ public class VoiceManage
             if (ret != (int)ErrorCode.MSP_SUCCESS) { Debug.Log("登陆失败!" + ret); return SynthStatus.MSP_TTS_FLAG_CMD_CANCELED; }
             //string @params = "engine_type = cloud,voice_name=nannan,speed=50,volume=50,pitch=50,text_encoding =UTF8,background_sound=1,sample_rate=16000";
             string @params = "engine_type = local, voice_name = xiaoyan, text_encoding = UTF8, tts_res_path = fo|res\\tts\\xiaoyan.jet;fo|res\\tts\\common.jet, sample_rate = 16000, speed = 50, volume = 50, pitch = 50, rdn = 1";
-            sid = Ptr2Str(MSC.QTTSSessionBegin(@params, ref ret));
+            sid = Utils.Ptr2Str(MSC.QTTSSessionBegin(@params, ref ret));
             Debug.Log(string.Format("-->开启一次语音合成[{0}]", sid));
             return SpeechSynthesis(sid,text, name,path);
         }
@@ -93,11 +85,10 @@ public class VoiceManage
     {
         try
         {
-            //Debug.Log(Environment.CurrentDirectory);
             int retCode = MSC.MSPLogin(null, null, msp_login.APPID + ",engine_start = ivw,ivw_res_path =fo|res/ivw/wakeupresource.jet,work_dir = .");
             if (retCode != (int)ErrorCode.MSP_SUCCESS) { Debug.Log("登陆失败!"); return; }
             Debug.Log(string.Format("{0} 登陆成功,正在开启引擎..", DateTime.Now.Ticks));
-            sid = Ptr2Str(MSC.QIVWSessionBegin(string.Empty, "sst=wakeup,ivw_threshold=0:-20", ref retCode));
+            sid = Utils.Ptr2Str(MSC.QIVWSessionBegin(string.Empty, "sst=wakeup,ivw_threshold=0:-20", ref retCode));
             if (retCode != (int)ErrorCode.MSP_SUCCESS) { Debug.Log("开启失败!"); return; }
             Debug.Log(string.Format("{1} 开启成功[{0}],正在注册..", sid, DateTime.Now.Ticks));
             retCode = MSC.QIVWRegisterNotify(sid, registerCallback, new IntPtr());
@@ -159,7 +150,38 @@ public class VoiceManage
             //while (waitGrmBuildFlag == 0){}//等待语法构建结果
             //语音转文字
             //string session_params = "engine_type=local,asr_threshold=0,asr_denoise=0,local_grammar = " + grammar_id + ",asr_res_path=fo|res/asr/common.jet,grm_build_path=res/asr/GrmBuilld, sample_rate = 16000, result_type = plain, result_encoding = GB2312 ,vad_eos = 5000";//可停止说话5秒保持语音识别状态
-            nar.StartRec();
+            nar.StartRec(false);
+            result_string = "";//SpeechRecognition(sid);
+            Debug.Log("-->语音识别结果:" + result_string);
+        }
+        catch (Exception e)
+        {
+            Debug.Log(e.Message);
+        }
+        return result_string;
+    }
+
+    /// <summary>
+    /// 单次识别
+    /// </summary>
+    /// <returns></returns>
+    public string SingleVoiceDistinguish()
+    {
+        string result_string = "";
+        try
+        {
+            int ret = MSC.MSPLogin(null, null, msp_login.APPID + ",work_dir = .");
+            if (ret != (int)ErrorCode.MSP_SUCCESS) { Debug.Log("登陆失败:" + ret); MSC.MSPLogout(); return ""; }
+            Debug.Log(string.Format("登陆成功,语音识别正在加载..."));
+            //离线构建语法网络
+            //waitGrmBuildFlag = 0;
+            //retCode = GrammarBuild("bnf", "call.bnf");
+            //Debug.Log("返回码是：" + retCode);
+            //if (ret != (int)ErrorCode.MSP_SUCCESS) { Debug.Log("语法构建失败:" + ret); return string.Empty; }
+            //while (waitGrmBuildFlag == 0){}//等待语法构建结果
+            //语音转文字
+            //string session_params = "engine_type=local,asr_threshold=0,asr_denoise=0,local_grammar = " + grammar_id + ",asr_res_path=fo|res/asr/common.jet,grm_build_path=res/asr/GrmBuilld, sample_rate = 16000, result_type = plain, result_encoding = GB2312 ,vad_eos = 5000";//可停止说话5秒保持语音识别状态
+            nar.StartRec(true);
             result_string = "";//SpeechRecognition(sid);
             Debug.Log("-->语音识别结果:" + result_string);
         }
@@ -183,17 +205,6 @@ public class VoiceManage
     }
 
     /// <summary>
-    /// 获取二进制流音频
-    /// </summary>
-    /// <returns></returns>
-    public static byte[] GetAudioBytes()
-    {
-        string file = mic.startRecording("rec");
-        if (file == string.Empty) { return null; }
-        return GetFileData(Application.dataPath + "/Resources/Voice/rec.wav");
-    }
-
-    /// <summary>
     /// 语音唤醒方法
     /// </summary>
     /// <param name="sid"></param>
@@ -202,7 +213,7 @@ public class VoiceManage
         string file = mic.startRecording("hx");
         if (file == string.Empty) { return; }
         //byte[] audio_buffer = GetFileData(file);
-        byte[] audio_buffer = GetFileData(Environment.CurrentDirectory + "/wav/rec.wav");
+        byte[] audio_buffer = Utils.GetFileData(Environment.CurrentDirectory + "/wav/rec.wav");
         int audio_size = audio_buffer.Length;
         int audio_count = 0;
         while (audio_stat != audioStatus.MSP_AUDIO_SAMPLE_LAST)
@@ -236,8 +247,7 @@ public class VoiceManage
         audio_stat = audioStatus.MSP_AUDIO_SAMPLE_CONTINUE;
         ep_status = epStatus.MSP_EP_LOOKING_FOR_SPEECH;
         recoStatus = RecogStatus.ISR_REC_STATUS_SUCCESS;
-
-        sid = Ptr2Str(MSC.QISRSessionBegin(string.Empty, speech_param, ref ret));
+        sid = Utils.Ptr2Str(MSC.QISRSessionBegin(string.Empty, speech_param, ref ret));
         Debug.Log(string.Format("-->开启一次语音识别[{0}]", sid));
         if (ret != (int)ErrorCode.MSP_SUCCESS) { Debug.Log("加载失败!"); return; }
 
@@ -270,7 +280,7 @@ public class VoiceManage
             }
             if (IntPtr.Zero != rslt)
             {
-                string tempRes = Ptr2Str(rslt);
+                string tempRes = Utils.Ptr2Str(rslt);
 
                 rec_result = rec_result + tempRes;
                 if (rec_result.Length >= BUFFER_SIZE)
@@ -284,7 +294,6 @@ public class VoiceManage
         int errorcode = MSC.QISRSessionEnd(sid, "正常结束");
 
         //语音识别结果
-        Debug.Log("音频长度："+rec_result.Length);
         if (rec_result.Length != 0)
         {
             Debug.Log("识别结果是："+rec_result);
@@ -329,8 +338,8 @@ public class VoiceManage
         
         //Debug.Log(string.Format("音频长度:byte[{0}],memoryStream[{1}]", audio_total_len, memoryStream.Length));
         //添加音频头,否则无法播放
-        WAVE_Header wave_Header = getWave_Header((int)memoryStream.Length+44);
-        byte[] audio_header = StructToBytes(wave_Header);
+        Utils.WAVE_Header wave_Header = Utils.getWave_Header((int)memoryStream.Length+44);
+        byte[] audio_header = Utils.StructToBytes(wave_Header);
         memoryStream.Position = 0;
         memoryStream.Write(audio_header, 0, audio_header.Length);
         memoryStream.Position = 0;
@@ -369,144 +378,4 @@ public class VoiceManage
         }
         return 0;
     }
-
-    #region 通用方法
-
-    /// <summary>
-    /// 结构体转字符串
-    /// </summary>
-    /// <param name="structure"></param>
-    /// <returns></returns>
-    private byte[] StructToBytes(object structure)
-    {
-        int num = Marshal.SizeOf(structure);
-        IntPtr intPtr = Marshal.AllocHGlobal(num);
-        byte[] result;
-        try
-        {
-            Marshal.StructureToPtr(structure, intPtr, false);
-            byte[] array = new byte[num];
-            Marshal.Copy(intPtr, array, 0, num);
-            result = array;
-        }
-        finally
-        {
-            Marshal.FreeHGlobal(intPtr);
-        }
-        return result;
-    }
-    /// <summary>
-    /// 结构体初始化赋值
-    /// </summary>
-    /// <param name="data_len"></param>
-    /// <returns></returns>
-    private WAVE_Header getWave_Header(int data_len)
-    {
-        return new WAVE_Header
-        {
-            RIFF_ID = 1179011410,
-            File_Size = data_len -8,
-            RIFF_Type = 1163280727,
-            FMT_ID = 544501094,
-            FMT_Size = 16,
-            FMT_Tag = 1,
-            FMT_Channel = 1,
-            FMT_SamplesPerSec = 16000,
-            AvgBytesPerSec = 32000,
-            BlockAlign = 2,
-            BitsPerSample = 16,
-            DATA_ID = 1635017060,
-            DATA_Size = data_len-44
-        };
-    }
-
-    /// <summary>  
-    /// wav音频头  
-    /// </summary>  
-    private struct WAVE_Header
-    {
-        public int RIFF_ID;
-        public int File_Size;
-        public int RIFF_Type;
-        public int FMT_ID;
-        public int FMT_Size;
-        public short FMT_Tag;
-        public ushort FMT_Channel;
-        public int FMT_SamplesPerSec;
-        public int AvgBytesPerSec;
-        public ushort BlockAlign;
-        public ushort BitsPerSample;
-        public int DATA_ID;
-        public int DATA_Size;
-    }
-    /// 指针转字符串  
-    /// </summary>  
-    /// <param name="p">指向非托管代码字符串的指针</param>  
-    /// <returns>返回指针指向的字符串</returns>  
-    public static string Ptr2Str(IntPtr p)
-    {
-        List<byte> lb = new List<byte>();
-        while (Marshal.ReadByte(p) != 0)
-        {
-            lb.Add(Marshal.ReadByte(p));
-            if (IntPtr.Size == 4)
-            {
-                p = (IntPtr)(p.ToInt32() + 1);
-            }
-            else
-            {
-                p = (IntPtr)(p.ToInt64() + 1);
-            }
-        }
-        byte[] bs = lb.ToArray();
-        return Encoding.Default.GetString(lb.ToArray());
-    }
-    /// <summary>
-    /// byte[]转指针
-    /// </summary>
-    /// <param name="bytes"></param>
-    /// <returns></returns>
-    public static IntPtr Byte2Ptr(byte[] bytes)
-    {
-        int size = bytes.Length;
-        IntPtr buffer = Marshal.AllocHGlobal(size);
-        try
-        {
-            Marshal.Copy(bytes, 0, buffer, size);
-            return buffer;
-        }
-        finally
-        {
-            Marshal.FreeHGlobal(buffer);
-        }
-    }
-    /// <summary>
-    /// 将文件转为byte[]
-    /// </summary>
-    /// <param name="fileUrl"></param>
-    /// <returns></returns>
-    protected static byte[] GetFileData(string fileUrl)
-    {
-        FileStream fs = new FileStream(fileUrl, FileMode.Open, FileAccess.Read);
-        try
-        {
-            byte[] buffur = new byte[fs.Length];
-            fs.Read(buffur, 0, (int)fs.Length);
-            return buffur;
-        }
-        catch (Exception ex)
-        {
-            //MessageBoxHelper.ShowPrompt(ex.Message);
-            return null;
-        }
-        finally
-        {
-            if (fs != null)
-            {
-                //关闭资源
-                fs.Close();
-            }
-        }
-    }
-    #endregion
 }
