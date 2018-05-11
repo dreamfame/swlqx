@@ -57,12 +57,6 @@ public class main_test : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-        if (VoiceManage.ep_status == epStatus.MSP_EP_AFTER_SPEECH || VoiceManage.ep_status == epStatus.MSP_EP_TIMEOUT)
-        {
-            VoiceManage.ep_status = epStatus.MSP_EP_NULL;
-            String result = VoiceManage.SpeechRecognition();
-            Debug.Log("实时识别结果是："+result);
-        }
         if (Input.GetKeyDown(KeyCode.R)) 
         {
             Debug.Log("开始识别");
@@ -71,8 +65,7 @@ public class main_test : MonoBehaviour {
         }
         if (Input.GetKeyDown(KeyCode.T)) 
         {
-            Debug.Log("停止录音");
-            VoiceManage.nar.StopRec();
+            VoiceManage.StopSpeech();
         }
 
 
@@ -81,7 +74,7 @@ public class main_test : MonoBehaviour {
             canPlay = false;
             FlowManage.waveOutDevice = new WaveOutEvent();
             //waveOutDevice.PlaybackStopped += waveOutDevice_PlaybackStopped; 
-            FlowManage.audioFileReader = new AudioFileReader(voice_path + "/" + FlowManage.name + ".wav");
+            FlowManage.audioFileReader = new AudioFileReader(voice_path + "/" + FlowManage.voicename + ".wav");
             FlowManage.waveOutDevice.Init(FlowManage.audioFileReader);
             FlowManage.waveOutDevice.Play();
         }
