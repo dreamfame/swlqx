@@ -35,8 +35,8 @@ namespace Assets.Scripts
             recorder.SampleAggregator.MaximumCalculated += OnRecorderMaximumCalculated;
             waveSource.DataAvailable += waveSource_DataAvailable;
             waveSource.RecordingStopped += waveSource_RecordingStopped;
-            fileName = Application.dataPath + "/Resources/Voice/rec.wav";
-            waveFile = new WaveFileWriter(fileName, waveSource.WaveFormat);
+            //fileName = Application.dataPath + "/Resources/Voice/rec.wav";
+            //waveFile = new WaveFileWriter(fileName, waveSource.WaveFormat);
 
             waveSource.StartRecording();
         }
@@ -44,7 +44,6 @@ namespace Assets.Scripts
         void OnRecorderMaximumCalculated(object sender, MaxSampleEventArgs e)
         {
             lastPeak = Math.Max(e.MaxSample, Math.Abs(e.MinSample)) * 100;
-            Debug.Log("音量是：" + lastPeak);
         }
 
         /// <summary>
@@ -53,6 +52,8 @@ namespace Assets.Scripts
         public string StopRec()
         {
             recorder.SampleAggregator.MaximumCalculated -= OnRecorderMaximumCalculated;
+            waveSource.DataAvailable -= waveSource_DataAvailable;
+            waveSource.RecordingStopped -= waveSource_RecordingStopped;
             waveSource.StopRecording();
             // Close Wave(Not needed under synchronous situation)
             if (waveSource != null)

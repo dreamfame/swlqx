@@ -170,30 +170,6 @@ public class VoiceManage
         return result_string;
     }
 
-    public static void SaveDataToArea(WaveIn wis,byte[] buffer,int bytesData) 
-    {
-        int tret = -1;
-        int audio_rate = 16000;
-        int audio_byte = 16;
-        wis.BufferMilliseconds = 500;
-        IntPtr bp = Marshal.AllocHGlobal(bytesData);
-        Marshal.Copy(buffer, 0, bp, bytesData);
-        uint bytelength = (uint)(audio_rate * (audio_byte / 8) * ((float)wis.BufferMilliseconds / 1000));
-        /*if (ep_status == epStatus.MSP_EP_NULL)
-        {
-            tret = MSC.QISRAudioWrite(sid, bp, bytelength, audioStatus.MSP_AUDIO_SAMPLE_FIRST, ref ep_status, ref recoStatus);
-        }
-        else if (ep_status == epStatus.MSP_EP_LOOKING_FOR_SPEECH)
-        {
-            tret = MSC.QISRAudioWrite(sid, bp, bytelength, audioStatus.MSP_AUDIO_SAMPLE_CONTINUE, ref ep_status, ref recoStatus);
-        }
-        else if (ep_status == epStatus.MSP_EP_IN_SPEECH)
-        {
-            tret = MSC.QISRAudioWrite(sid, bp, bytelength, audioStatus.MSP_AUDIO_SAMPLE_LAST, ref ep_status, ref recoStatus);
-        }*/
-        Marshal.FreeHGlobal(bp);
-    }
-
     private QISRUserData getUserData()
     {
         return new QISRUserData
@@ -257,42 +233,6 @@ public class VoiceManage
     public static void SpeechRecognition(List<VoiceData> VoiceBuffer)
     {
         string rec_result = String.Empty;
-        /*byte[] audio_buffer = GetFileData(mt.voice_path+"/rec.wav");
-        //long audio_size = audio_buffer.Length;
-        //long audio_count = 0;
-        //string rec_result = string.Empty;
-        //ep_status = epStatus.MSP_EP_LOOKING_FOR_SPEECH;
-        //if (ep_status == epStatus.MSP_EP_AFTER_SPEECH || ep_status == epStatus.MSP_EP_TIMEOUT)
-        //{
-        while (epStatus.MSP_EP_AFTER_SPEECH != ep_status)
-        {
-            audio_stat = audioStatus.MSP_AUDIO_SAMPLE_CONTINUE;
-            long len = 10 * FRAME_LEN; //16k音频，10帧 （时长200ms）
-            if (audio_size < 2 * len) len = (int)audio_size;
-            if (len <= 0) break;
-            if (0 == audio_count)
-                audio_stat = audioStatus.MSP_AUDIO_SAMPLE_FIRST;
-            ret = MSC.QISRAudioWrite(sid, audio_buffer.Skip((int)audio_count).Take((int)len).ToArray(), (uint)len, audio_stat, ref ep_status, ref rec_status);
-            if (ret != (int)ErrorCode.MSP_SUCCESS) { Debug.Log(string.Format("读取音频失败:{0}!", ret)); return ""; }
-            audio_count += len;
-            audio_size -= len;           
-            if (rec_status == rsltStatus.MSP_REC_STATUS_SUCCESS)
-            {                
-                IntPtr p = MSC.QISRGetResult(sid, ref rec_status, 0, ref ret);
-                if (ret != (int)ErrorCode.MSP_SUCCESS) { Debug.Log(string.Format("无法识别:{0}!", ret)); return ""; }
-                Debug.Log(Ptr2Str(p));
-                if (p != IntPtr.Zero)
-                {
-                    int rslt_len = Ptr2Str(p).Length;
-                    rec_result = rec_result + Ptr2Str(p);
-                    if (rec_result.Length >= BUFFER_SIZE)
-                    {
-                        Debug.Log("no enough buffer for rec_result");
-                        return "";
-                    }
-                }
-            }
-        }*/
         audio_stat = audioStatus.MSP_AUDIO_SAMPLE_CONTINUE;
         ep_status = epStatus.MSP_EP_LOOKING_FOR_SPEECH;
         recoStatus = RecogStatus.ISR_REC_STATUS_SUCCESS;
@@ -344,67 +284,11 @@ public class VoiceManage
         int errorcode = MSC.QISRSessionEnd(sid, "正常结束");
 
         //语音识别结果
+        Debug.Log("音频长度："+rec_result.Length);
         if (rec_result.Length != 0)
         {
             Debug.Log("识别结果是："+rec_result);
         }
-
-        #region  //before
-        /*while (true)
-        {
-            if (ep_status == epStatus.MSP_EP_AFTER_SPEECH || ep_status == epStatus.MSP_EP_TIMEOUT)
-            {
-                ret = MSC.QISRAudioWrite(sid, IntPtr.Zero, 0, audioStatus.MSP_AUDIO_SAMPLE_LAST, ref ep_status, ref recoStatus);
-                if (ret != (int)ErrorCode.MSP_SUCCESS) { Debug.Log(string.Format("识别音频失败:{0}!", ret)); return; }
-                int timeout = 0;
-                while (RecogStatus.ISR_REC_STATUS_SPEECH_COMPLETE != recoStatus)
-                {
-                    IntPtr rslt = MSC.QISRGetResult(sid, ref recoStatus, 0, ref ret);
-                    if (ret != (int)ErrorCode.MSP_SUCCESS) { Debug.Log(string.Format("音频无法识别:{0}!", ret)); return; }
-                    if (rslt != IntPtr.Zero)
-                    {
-                        rec_result = Ptr2Str(rslt);
-                        Debug.LogError(rec_result);
-                        if (rec_result.Length >= BUFFER_SIZE)
-                        {
-                            Debug.Log("no enough buffer for rec_result");
-                        }
-                    }
-                    else
-                    {
-                        timeout += 1;
-                        Thread.Sleep(150);
-                        if (timeout > 20)
-                        {
-                            break;
-                        }
-                    }
-                    Thread.Sleep(150); //防止频繁占用CPU
-                }
-                if (timeout > 20)
-                {
-                    ret = MSC.MSPLogout();
-                    ret = MSC.MSPLogin(null, null, msp_login.APPID + ",work_dir = .");
-                }
-                else
-                {
-                    ret = MSC.QISRSessionEnd(sid, string.Empty);
-                }
-                if (ret == 0)
-                {
-                    ep_status = epStatus.MSP_EP_NULL;
-                    recoStatus = RecogStatus.ISR_REC_NULL;
-                    sid = Ptr2Str(MSC.QISRSessionBegin(string.Empty, speech_param, ref ret));//重新开始会话 
-                }
-                else
-                {
-                    Debug.Log("对话结束失败");
-                    return;
-                }
-            }
-            Thread.Sleep(300);
-        }*/
-        #endregion
     }
 
     public static void StopSpeech() 
