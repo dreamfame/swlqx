@@ -13,7 +13,6 @@ namespace Assets.Scripts
 	public class NAudioRecorder
 	{
         public WaveIn waveSource = null;
-        public WaveFileWriter waveFile = null;
         private AudioRecorder recorder;
         private float lastPeak;//说话音量
         float secondsRecorded;
@@ -21,20 +20,20 @@ namespace Assets.Scripts
         int Ends = 5;
         private const int BUFFER_SIZE = 4096;
         List<VoiceData> VoiceBuffer = new List<VoiceData>();
-        private bool singleFlag = false;
 
         /// <summary>
         /// 开始录音
         /// </summary>
-        public void StartRec(bool singleFlag)
+        public void StartRec()
         {
-            this.singleFlag = singleFlag;
             waveSource = new WaveIn();
             waveSource.WaveFormat = new WaveFormat(16000, 16, 1); // 16bit,16KHz,Mono的录音格式
+            waveSource.DataAvailable += waveSource_DataAvailable;
+            waveSource.RecordingStopped += waveSource_RecordingStopped;
+
             recorder = new AudioRecorder();
             recorder.BeginMonitoring(-1);
             recorder.SampleAggregator.MaximumCalculated += OnRecorderMaximumCalculated;
-            this.SetWaveInCallback(waveSource_DataAvailable, waveSource_RecordingStopped);
             waveSource.StartRecording();
         }
 
@@ -48,32 +47,16 @@ namespace Assets.Scripts
         /// </summary>
         public string StopRec()
         {
-            recorder.SampleAggregator.MaximumCalculated -= OnRecorderMaximumCalculated;
-            this.SetWaveInCallback(waveSource_DataAvailable, waveSource_RecordingStopped);
+            string result = "";
             waveSource.StopRecording();
+            recorder.SampleAggregator.MaximumCalculated -= OnRecorderMaximumCalculated;
             // Close Wave(Not needed under synchronous situation)
             if (waveSource != null)
             {
                 waveSource.Dispose();
                 waveSource = null;
             }
-
-            if (waveFile != null)
-            {
-                waveFile.Dispose();
-                waveFile = null;
-            }
-            return "";
-        }
-        /// <summary>
-        /// 设置回调函数
-        /// </summary>
-        /// <param name="dataAvailable"></param>
-        /// <param name="RecordingStopped"></param>
-        private void SetWaveInCallback(EventHandler<WaveInEventArgs> dataAvailable, EventHandler RecordingStopped)
-        {
-            waveSource.DataAvailable -= dataAvailable;
-            waveSource.RecordingStopped -= RecordingStopped;
+            return result;
         }
 
         /// <summary>
@@ -104,11 +87,7 @@ namespace Assets.Scripts
                     VoiceManage.SpeechRecognition(VoiceBuffer);//调用语音识别
                 }
                 VoiceBuffer.Clear();
-                if (singleFlag)
-                {
-                    Ends = 0;
-                }
-                else Ends = 5;
+                Ends = 5;
             }
         }
 
@@ -123,12 +102,6 @@ namespace Assets.Scripts
             {
                 waveSource.Dispose();
                 waveSource = null;
-            }
-
-            if (waveFile != null)
-            {
-                waveFile.Dispose();
-                waveFile = null;
             }
         }
     }

@@ -122,9 +122,9 @@ namespace Assets.Scripts
             //u.HideM2PAnswerPanel();
             //u.ShowP2MAskPanel();
             Debug.Log("进入我问沙勿略模式");
-            string result = n.StopRec();
-            Debug.Log(string.Format("-->语音信息:{0}", result));
-            if (result == string.Empty || result == null)
+            //string result = n.StopRec();
+            //Debug.Log(string.Format("-->语音信息:{0}", result));
+            if (VoiceManage.ask_rec_result == string.Empty || VoiceManage.ask_rec_result == null)
             {
                 u.P2M_Ask_Panel.transform.GetChild(4).gameObject.SetActive(true);
                 u.P2M_Ask_Panel.transform.GetChild(4).gameObject.GetComponent<UILabel>().text = "对不起，我没有听清您说的话！可以再说一次吗？";
@@ -135,13 +135,14 @@ namespace Assets.Scripts
             else
             {
                 u.P2M_Ask_Panel.transform.GetChild(4).gameObject.SetActive(true);
-                u.P2M_Ask_Panel.transform.GetChild(4).gameObject.GetComponent<UILabel>().text = result;
+                u.P2M_Ask_Panel.transform.GetChild(4).gameObject.GetComponent<UILabel>().text = VoiceManage.ask_rec_result;
                 Debug.Log("小沙正在思考中...");
-                string answer_result = AIUI.HttpPost(AIUI.TEXT_SEMANTIC_API, "{\"userid\":\"test001\",\"scene\":\"main\"}", "text=" + Utils.Encode(result));
+                string answer_result = AIUI.HttpPost(AIUI.TEXT_SEMANTIC_API, "{\"userid\":\"test001\",\"scene\":\"main\"}", "text=" + Utils.Encode(VoiceManage.ask_rec_result));
                 u.P2M_Ask_Panel.transform.GetChild(6).gameObject.SetActive(true);
                 u.P2M_Ask_Panel.transform.GetChild(6).gameObject.GetComponent<UILabel>().text = answer_result;
                 content = answer_result;
                 voicename = "answer";
+                Debug.Log("答案：" + answer_result);
                 if (answer_result.Equals("这个问题我还不知道!")) 
                 {
                     DateTime dateTime = new DateTime();
@@ -150,17 +151,18 @@ namespace Assets.Scripts
                     xmlDoc.Load(Application.dataPath + "/Resources/Question/record.xml");
                     XmlNode root = xmlDoc.SelectSingleNode("root");
                     XmlElement xe1 = xmlDoc.CreateElement("问题");
-                    xe1.SetAttribute("内容", result);
+                    xe1.SetAttribute("内容", VoiceManage.ask_rec_result);
                     xe1.SetAttribute("时间", dateTime.ToString());
                     root.AppendChild(xe1);
                     xmlDoc.Save(Application.dataPath + "/Resources/Question/record.xml");
+                    VoiceManage.StopSpeech();
                 }
-                Debug.Log(string.Format("-->小沙回答:{0}", result));
+                Debug.Log(string.Format("-->小沙回答:{0}", VoiceManage.ask_rec_result));
             }
-            Thread thread_answer = new Thread(new ThreadStart(playVoice));
+            /*Thread thread_answer = new Thread(new ThreadStart(playVoice));
             thread_answer.IsBackground = true;
             thread_answer.Start();
-            mt.FinishedAnswer = true;
+            mt.FinishedAnswer = true;*/
             //结束界面
             //进入唤醒状态
         }
@@ -186,7 +188,7 @@ namespace Assets.Scripts
         /// <summary>
         /// 停止回答（沙勿略问我）
         /// </summary>
-        public static void StopAnswer(NAudioRecorder nar) 
+        public static void StopAnswer(SingleNAudioRecorder nar) 
         {
             if (nar.waveSource != null)
             {
@@ -199,7 +201,6 @@ namespace Assets.Scripts
                     Regex r = new Regex(@"[a-zA-Z]+");
                     Match m = r.Match(HayStack);
                     string answerStr = m.Value.ToUpper().Trim();
-                    Debug.Log("回答的是：" + answerStr);
                     string Needle = tempAnswer[curNo - 1].CorrectAnswer;
                     if (answerStr.Equals(Needle) || Needle.Contains(answerStr)&&answerStr!="")
                     {

@@ -97,13 +97,6 @@ public class main : MonoBehaviour
         {
             //SpVoiceClass sp = new SpVoiceClass();
         }
-        if (Input.GetKeyDown(KeyCode.R))
-        {
-            Debug.Log("测试离线语音识别");
-            string result = new VoiceManage().VoiceDistinguish();
-            Debug.Log(string.Format("-->语音信息:{0}", result));
-
-        }
     }
 
     /// <summary>

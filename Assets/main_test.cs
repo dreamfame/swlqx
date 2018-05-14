@@ -45,6 +45,8 @@ public class main_test : MonoBehaviour {
 
     NAudioRecorder nar = new NAudioRecorder();
 
+    SingleNAudioRecorder singleNar = new SingleNAudioRecorder();
+
     public float once_ask_time = 0f;
 
     public string voice_path = "";
@@ -97,7 +99,7 @@ public class main_test : MonoBehaviour {
                         FlowManage.audioFileReader.Close();
                         FlowManage.audioFileReader = null;
                     }
-                    nar.StartRec();
+                    singleNar.StartRec();
                 }
             }
             if (AnswerAnalysis) //沙勿略问我模式答题后给出答案解析
@@ -171,14 +173,6 @@ public class main_test : MonoBehaviour {
                 }
             }
         }
-        if (Input.GetMouseButtonDown(2)) 
-        {         
-            nar.StartRec();
-        }
-        if (Input.GetMouseButtonUp(2)) 
-        {
-            nar.StopRec();
-        }
         if (Input.GetMouseButtonDown(1)) 
         {
             //StartCoroutine(EnterM2MMode());
@@ -193,7 +187,7 @@ public class main_test : MonoBehaviour {
             {
                 isAnswer = false;
                 answer_time = 0f;
-                FlowManage.StopAnswer(nar);
+                FlowManage.StopAnswer(singleNar);
             }
         }
         if (flow_change) 
@@ -205,8 +199,10 @@ public class main_test : MonoBehaviour {
             }
             else if (curMode == 2) 
             {      
-                AskMode = true;
-                nar.StartRec();
+                //AskMode = true;
+                VoiceManage vm = new VoiceManage();
+                vm.VoiceDistinguish();
+                //nar.StartRec();
             }
         }
         
@@ -275,6 +271,10 @@ public class main_test : MonoBehaviour {
         if (nar.waveSource != null)
         {
             nar.StopRec();
+        }
+        if (singleNar.waveSource != null) 
+        {
+            singleNar.StopRec();
         }
         if (FlowManage.waveOutDevice != null)
         {
