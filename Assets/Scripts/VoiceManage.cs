@@ -47,6 +47,8 @@ public class VoiceManage
 
     public static string ask_rec_result = "";
 
+    public static bool needLogin = false;
+
     private class msp_login
     {
         public static string APPID = "appid = 5ae7ea3a";
@@ -309,6 +311,11 @@ public class VoiceManage
     /// <param name="sid"></param>
     public static void SpeechRecognition(List<VoiceData> VoiceBuffer)
     {
+        if (needLogin) 
+        {
+            ret = MSC.MSPLogin(null, null, msp_login.APPID + ",work_dir = .");
+            if (ret != (int)ErrorCode.MSP_SUCCESS) { Debug.Log("登陆失败:" + ret); MSC.MSPLogout(); return; }
+        }
         audio_stat = audioStatus.MSP_AUDIO_SAMPLE_CONTINUE;
         ep_status = epStatus.MSP_EP_LOOKING_FOR_SPEECH;
         recoStatus = RecogStatus.ISR_REC_STATUS_SUCCESS;
@@ -361,6 +368,7 @@ public class VoiceManage
         //语音识别结果
         if (ask_rec_result.Length != 0)
         {
+            needLogin = false;
             FlowManage.P2MMode(nar);
             Debug.Log("识别结果是：" + ask_rec_result);
             ask_rec_result = "";

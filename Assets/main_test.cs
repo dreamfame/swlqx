@@ -41,8 +41,6 @@ public class main_test : MonoBehaviour {
 
     private int curMode = 0;
 
-    MicManage mic;
-
     NAudioRecorder nar = new NAudioRecorder();
 
     SingleNAudioRecorder singleNar = new SingleNAudioRecorder();
@@ -53,23 +51,17 @@ public class main_test : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
-        mic = new MicManage(GetComponent<AudioSource>());
         init();
 	}
 	
 	// Update is called once per frame
 	void Update () {
-        if (Input.GetKeyDown(KeyCode.R)) 
+
+        if (Input.GetKeyDown(KeyCode.R))
         {
-            Debug.Log("开始识别");
             VoiceManage vm = new VoiceManage();
             vm.VoiceDistinguish();
         }
-        if (Input.GetKeyDown(KeyCode.T)) 
-        {
-            VoiceManage.StopSpeech();
-        }
-
 
         if (canPlay) //语音合成完毕并生成音频后播放
         {
@@ -230,6 +222,19 @@ public class main_test : MonoBehaviour {
     public void init()
     {
         curMode = 0;
+        isPlayed = false;
+        answer_time = 0f;
+        UserStartAnswer = false;
+        isAnswer = false;
+        AnswerAnalysis = false;
+        AskMode = false;
+        flow_change = false;
+        FinishedAnswer = false;
+        canPlay = false;
+        wait_time = 0f;
+        isFinished = false;
+        isTransit = false;
+        once_ask_time = 0f;
         voice_path = Application.dataPath + "/Resources/Voice";
         if (CharacterModel == null)
         {

@@ -79,7 +79,7 @@ namespace Assets.Scripts
                 }
                 else
                 {
-                    return "这个问题我还不知道!";
+                    return "抱歉，这个问题我还不知道，问答结束！";
                 }
             }
             return retString;

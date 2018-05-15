@@ -83,7 +83,7 @@ namespace Assets.Scripts
                 u.M2P_Answer_Panel.transform.GetChild(curNo - 1).gameObject.transform.GetChild(1).GetComponent<UILabel>().text = "B." + tempAnswer[no - 1].answerB;
                 u.M2P_Answer_Panel.transform.GetChild(curNo - 1).gameObject.transform.GetChild(2).GetComponent<UILabel>().text = "C." + tempAnswer[no - 1].answerC;
                 //vm.PlayVoice(tempAnswer[curNo - 1].title, "subject" + curNo, "Assets/Resources/Voice");
-                content = tempAnswer[curNo - 1].title;
+                content = "第"+curNo+"题."+tempAnswer[curNo - 1].title;
                 voicename = "subject" + curNo;
                 Thread thread_question = new Thread(new ThreadStart(playVoice));
                 thread_question.IsBackground = true;
@@ -119,6 +119,16 @@ namespace Assets.Scripts
         /// </summary>
         public static void P2MMode(NAudioRecorder n) 
         {
+            if (FlowManage.waveOutDevice != null)
+            {
+                FlowManage.waveOutDevice.Dispose();
+                FlowManage.waveOutDevice = null;
+            }
+            if (FlowManage.audioFileReader != null)
+            {
+                FlowManage.audioFileReader.Close();
+                FlowManage.audioFileReader = null;
+            }
             //u.HideM2PAnswerPanel();
             //u.ShowP2MAskPanel();
             Debug.Log("进入我问沙勿略模式");
@@ -143,7 +153,7 @@ namespace Assets.Scripts
                 content = answer_result;
                 voicename = "answer";
                 Debug.Log("答案：" + answer_result);
-                if (answer_result.Equals("这个问题我还不知道!")) 
+                if (answer_result.Equals("抱歉，这个问题我还不知道，问答结束！")) 
                 {
                     DateTime dateTime = new DateTime();
                     dateTime = DateTime.Now;
@@ -159,10 +169,12 @@ namespace Assets.Scripts
                 }
                 Debug.Log(string.Format("-->小沙回答:{0}", VoiceManage.ask_rec_result));
             }
-            /*Thread thread_answer = new Thread(new ThreadStart(playVoice));
+            MSC.MSPLogout();
+            VoiceManage.needLogin = true;
+            Thread thread_answer = new Thread(new ThreadStart(playVoice));
             thread_answer.IsBackground = true;
             thread_answer.Start();
-            mt.FinishedAnswer = true;*/
+            //mt.FinishedAnswer = true;
             //结束界面
             //进入唤醒状态
         }
