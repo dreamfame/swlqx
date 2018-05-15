@@ -181,6 +181,16 @@ namespace Assets.Scripts
 
         public static void PlayTransitVoice(int Mode,string txt) 
         {
+            if (FlowManage.waveOutDevice != null)
+            {
+                FlowManage.waveOutDevice.Dispose();
+                FlowManage.waveOutDevice = null;
+            }
+            if (FlowManage.audioFileReader != null)
+            {
+                FlowManage.audioFileReader.Close();
+                FlowManage.audioFileReader = null;
+            }
             if (Mode == 1) //播放进入沙勿略问我模式语音
             {
                 content = txt;
