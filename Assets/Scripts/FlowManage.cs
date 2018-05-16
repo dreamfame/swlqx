@@ -37,6 +37,8 @@ namespace Assets.Scripts
 
         public static AudioFileReader audioFileReader;
 
+        public static bool canDistinguish = true;
+
         public static string content = "";
         public static string voicename = "";
 
@@ -101,6 +103,7 @@ namespace Assets.Scripts
                 Debug.Log("内容是：" + content + "=====文件名是：" + voicename);
                 if (vm.PlayVoice(content, voicename, mt.voice_path) == SynthStatus.MSP_TTS_FLAG_DATA_END)
                 {
+                    canDistinguish = true;
                     mt.canPlay = true;
                 }
             }
@@ -119,6 +122,7 @@ namespace Assets.Scripts
         /// </summary>
         public static void P2MMode(NAudioRecorder n) 
         {
+            canDistinguish = false;
             if (FlowManage.waveOutDevice != null)
             {
                 FlowManage.waveOutDevice.Dispose();
@@ -140,6 +144,7 @@ namespace Assets.Scripts
                 u.P2M_Ask_Panel.transform.GetChild(4).gameObject.GetComponent<UILabel>().text = "对不起，我没有听清您说的话！可以再说一次吗？";
                 content = "对不起，我没有听清您说的话！可以再说一次吗？";
                 voicename = "answer";
+                mt.FinishedAnswer = true;
                 //mt.isFinished = true;
             }
             else
@@ -153,6 +158,7 @@ namespace Assets.Scripts
                 content = answer_result;
                 voicename = "answer";
                 Debug.Log("答案：" + answer_result);
+                mt.FinishedAnswer = true;
                 if (answer_result.Equals("抱歉，这个问题我还不知道，问答结束！")) 
                 {
                     DateTime dateTime = new DateTime();
@@ -165,16 +171,14 @@ namespace Assets.Scripts
                     xe1.SetAttribute("时间", dateTime.ToString());
                     root.AppendChild(xe1);
                     xmlDoc.Save(Application.dataPath + "/Resources/Question/record.xml");
+                    mt.FinishedAnswer = false;
                     VoiceManage.StopSpeech();
                 }
                 Debug.Log(string.Format("-->小沙回答:{0}", VoiceManage.ask_rec_result));
             }
-            MSC.MSPLogout();
-            VoiceManage.needLogin = true;
             Thread thread_answer = new Thread(new ThreadStart(playVoice));
             thread_answer.IsBackground = true;
             thread_answer.Start();
-            //mt.FinishedAnswer = true;
             //结束界面
             //进入唤醒状态
         }
@@ -226,7 +230,6 @@ namespace Assets.Scripts
                     string Needle = tempAnswer[curNo - 1].CorrectAnswer;
                     if (answerStr.Equals(Needle) || Needle.Contains(answerStr)&&answerStr!="")
                     {
-                        Debug.Log("回答正确");
                         content = "恭喜你，回答正确";
                         voicename = "correct";
                         u.M2P_Answer_Panel.transform.GetChild(5).gameObject.GetComponent<UILabel>().text = "回答正确";
@@ -257,7 +260,6 @@ namespace Assets.Scripts
                     }
                     else
                     {
-                        Debug.Log("回答错误");
                         content = "很遗憾，回答错误，正确答案是" + Needle;
                         voicename = "wrong";
                         u.M2P_Answer_Panel.transform.GetChild(5).gameObject.GetComponent<UILabel>().text = "回答错误";
@@ -309,7 +311,6 @@ namespace Assets.Scripts
                 {
                     content = "抱歉,您说了什么，我没有听清";
                     voicename = "sorry"; 
-                    Debug.Log("抱歉,您说了什么，我没有听清");
                     u.M2P_Answer_Panel.transform.GetChild(5).gameObject.GetComponent<UILabel>().text = "抱歉,您说了什么，我没有听清";
                 }
                 Thread thread_analysis = new Thread(new ThreadStart(playVoice));

@@ -84,7 +84,10 @@ namespace Assets.Scripts
             {
                 if (VoiceBuffer.Count() > 5)
                 {
-                    VoiceManage.SpeechRecognition(VoiceBuffer);//调用语音识别
+                    if (FlowManage.canDistinguish)
+                    {
+                        VoiceManage.SpeechRecognition(VoiceBuffer);//调用语音识别
+                    }
                 }
                 VoiceBuffer.Clear();
                 Ends = 5;

@@ -47,13 +47,23 @@ public class VoiceManage
 
     public static string ask_rec_result = "";
 
-    public static bool needLogin = false;
-
     private class msp_login
     {
         public static string APPID = "appid = 5ae7ea3a";
         public static string Account = "390378816@qq.com";
         public static string Passwd = "ai910125.0";
+    }
+
+    public static int MSCLogin() 
+    {
+        string login_configs = msp_login.APPID + ", work_dir = .";//登录参数,自己注册后获取的appid  
+        ret = MSC.MSPLogin(string.Empty, string.Empty, login_configs);//第一个参数为用户名，第二个参数为密码，第三个参数是登录参数，用户名和密码需要在http://open.voicecloud.cn  
+        return ret;
+    }
+
+    public static void MSCLogout()
+    {
+        MSC.MSPLogout();
     }
 
     /// <summary>
@@ -66,9 +76,6 @@ public class VoiceManage
     {
         try
         {
-            string login_configs = msp_login.APPID+", work_dir = .";//登录参数,自己注册后获取的appid  
-            ret = MSC.MSPLogin(string.Empty, string.Empty, login_configs);//第一个参数为用户名，第二个参数为密码，第三个参数是登录参数，用户名和密码需要在http://open.voicecloud.cn  
-            if (ret != (int)ErrorCode.MSP_SUCCESS) { Debug.Log("登陆失败!" + ret); MSC.MSPLogout(); return SynthStatus.MSP_TTS_FLAG_CMD_CANCELED; }
             //string @params = "engine_type = cloud,voice_name=nannan,speed=50,volume=50,pitch=50,text_encoding =UTF8,background_sound=1,sample_rate=16000";
             string @params = "engine_type = local, voice_name = xiaoyan, text_encoding = UTF8, tts_res_path = fo|res\\tts\\xiaoyan.jet;fo|res\\tts\\common.jet, sample_rate = 16000, speed = 50, volume = 50, pitch = 50, rdn = 1";
             sid = Utils.Ptr2Str(MSC.QTTSSessionBegin(@params, ref ret));
@@ -78,7 +85,6 @@ public class VoiceManage
         finally
         {
             MSC.QTTSSessionEnd(sid, string.Empty);
-            MSC.MSPLogout();//退出登录
         }
     }
 
@@ -142,8 +148,6 @@ public class VoiceManage
     {
         try
         {
-            int ret = MSC.MSPLogin(null, null, msp_login.APPID + ",work_dir = .");
-            if (ret != (int)ErrorCode.MSP_SUCCESS) { Debug.Log("登陆失败:" + ret); MSC.MSPLogout(); return; }
             Debug.Log(string.Format("登陆成功,语音识别正在加载..."));
             //离线构建语法网络
             //waitGrmBuildFlag = 0;
@@ -170,14 +174,12 @@ public class VoiceManage
         string result_string = "";
         try
         {
-            int retCode = MSC.MSPLogin(null, null, msp_login.APPID + ",work_dir = .");
-            if (retCode != (int)ErrorCode.MSP_SUCCESS) { Debug.Log("登陆失败:" + retCode); MSC.MSPLogout(); return ""; }
             Debug.Log(string.Format("登陆成功,语音识别正在加载..."));
             //语音转文字
             string session_params = "engine_type=cloud,sub = iat, domain = iat, language = zh_cn, accent = mandarin, sample_rate = 16000, result_type = plain, result_encoding = UTF-8 ,vad_eos = 5000";//可停止说话5秒保持语音识别状态
-            string ssid = Utils.Ptr2Str(MSC.QISRSessionBegin(string.Empty, session_params, ref retCode));
+            string ssid = Utils.Ptr2Str(MSC.QISRSessionBegin(string.Empty, session_params, ref ret));
             Debug.Log(string.Format("-->开启一次语音识别[{0}]", ssid));
-            if (retCode != (int)ErrorCode.MSP_SUCCESS) { Debug.Log("加载失败!"); return ""; }
+            if (ret != (int)ErrorCode.MSP_SUCCESS) { Debug.Log("加载失败!"); return ""; }
             result_string = SingleSpeechRecognition(ssid);
             Debug.Log("-->语音识别结果:" + result_string);
             MSC.QISRSessionEnd(ssid, string.Empty);
@@ -185,10 +187,6 @@ public class VoiceManage
         catch (Exception e)
         {
             Debug.Log(e.Message);
-        }
-        finally 
-        {
-            MSC.MSPLogout();
         }
         return result_string;
     }
@@ -311,11 +309,6 @@ public class VoiceManage
     /// <param name="sid"></param>
     public static void SpeechRecognition(List<VoiceData> VoiceBuffer)
     {
-        if (needLogin) 
-        {
-            ret = MSC.MSPLogin(null, null, msp_login.APPID + ",work_dir = .");
-            if (ret != (int)ErrorCode.MSP_SUCCESS) { Debug.Log("登陆失败:" + ret); MSC.MSPLogout(); return; }
-        }
         audio_stat = audioStatus.MSP_AUDIO_SAMPLE_CONTINUE;
         ep_status = epStatus.MSP_EP_LOOKING_FOR_SPEECH;
         recoStatus = RecogStatus.ISR_REC_STATUS_SUCCESS;
@@ -368,7 +361,6 @@ public class VoiceManage
         //语音识别结果
         if (ask_rec_result.Length != 0)
         {
-            needLogin = false;
             FlowManage.P2MMode(nar);
             Debug.Log("识别结果是：" + ask_rec_result);
             ask_rec_result = "";
@@ -379,9 +371,8 @@ public class VoiceManage
     {
         Debug.Log("停止");
         int ret = MSC.QISRSessionEnd(sid, string.Empty);
-        MSC.MSPLogout();
         nar.StopRec();
-        mt.init();
+        mt.isFinished = true;
     }
 
     /// <summary>

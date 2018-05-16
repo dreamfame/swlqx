@@ -51,6 +51,8 @@ public class main_test : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
+        if (VoiceManage.MSCLogin() != (int)ErrorCode.MSP_SUCCESS)
+        { Debug.Log("登陆失败!" + ret); MSC.MSPLogout(); return; }
         init();
 	}
 	
@@ -160,8 +162,25 @@ public class main_test : MonoBehaviour {
                         FlowManage.audioFileReader = null;
                     }
                     FinishedAnswer = false;
-                    Debug.Log("回答完毕");
-                    flow_change = true;
+                    FlowManage.canDistinguish = true;
+                }
+            }
+            if (isFinished) //我问沙勿略环节结束
+            {
+                if (FlowManage.waveOutDevice.PlaybackState == PlaybackState.Stopped)
+                {
+                    if (FlowManage.waveOutDevice != null)
+                    {
+                        FlowManage.waveOutDevice.Dispose();
+                        FlowManage.waveOutDevice = null;
+                    }
+                    if (FlowManage.audioFileReader != null)
+                    {
+                        FlowManage.audioFileReader.Close();
+                        FlowManage.audioFileReader = null;
+                    }
+                    isFinished = false;
+                    FlowManage.canDistinguish = true;
                 }
             }
         }
@@ -192,6 +211,7 @@ public class main_test : MonoBehaviour {
             else if (curMode == 2) 
             {      
                 //AskMode = true;
+                FlowManage.canDistinguish = true;
                 VoiceManage vm = new VoiceManage();
                 vm.VoiceDistinguish();
                 //nar.StartRec();
@@ -207,12 +227,6 @@ public class main_test : MonoBehaviour {
                 once_ask_time = 0f;
                 FlowManage.P2MMode(nar);
             }
-        }
-
-        if (isFinished) 
-        {
-            isFinished = false;
-            init();
         }
 	}
 
@@ -273,6 +287,7 @@ public class main_test : MonoBehaviour {
 
     void OnApplicationQuit()
     {
+        VoiceManage.MSCLogout();
         if (nar.waveSource != null)
         {
             nar.StopRec();
