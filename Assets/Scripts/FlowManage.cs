@@ -71,7 +71,7 @@ namespace Assets.Scripts
         /// <param name="no">题号</param>
         public static void M2PMode(int no) 
         {
-            //u.ShowM2PAnswerPanel();
+            u.ShowM2PAnswerPanel();
             curNo = no;
             if (tempAnswer == null)
             {
@@ -133,8 +133,6 @@ namespace Assets.Scripts
                 FlowManage.audioFileReader.Close();
                 FlowManage.audioFileReader = null;
             }
-            //u.HideM2PAnswerPanel();
-            //u.ShowP2MAskPanel();
             Debug.Log("进入我问沙勿略模式");
             //string result = n.StopRec();
             //Debug.Log(string.Format("-->语音信息:{0}", result));

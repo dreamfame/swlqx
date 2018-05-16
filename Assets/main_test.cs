@@ -45,6 +45,8 @@ public class main_test : MonoBehaviour {
 
     SingleNAudioRecorder singleNar = new SingleNAudioRecorder();
 
+    private static UIObject u;
+
     public float once_ask_time = 0f;
 
     public string voice_path = "";
@@ -53,6 +55,7 @@ public class main_test : MonoBehaviour {
 	void Start () {
         if (VoiceManage.MSCLogin() != (int)ErrorCode.MSP_SUCCESS)
         { Debug.Log("登陆失败!" + ret); MSC.MSPLogout(); return; }
+        u = Camera.main.GetComponent<UIObject>();
         init();
 	}
 	
@@ -181,6 +184,7 @@ public class main_test : MonoBehaviour {
                     }
                     isFinished = false;
                     FlowManage.canDistinguish = true;
+                    init();
                 }
             }
         }
@@ -211,6 +215,8 @@ public class main_test : MonoBehaviour {
             else if (curMode == 2) 
             {      
                 //AskMode = true;
+                u.HideM2PAnswerPanel();
+                u.ShowP2MAskPanel();
                 FlowManage.canDistinguish = true;
                 VoiceManage vm = new VoiceManage();
                 vm.VoiceDistinguish();
