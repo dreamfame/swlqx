@@ -76,13 +76,16 @@ public class main_test : MonoBehaviour {
             FlowManage.audioFileReader = new AudioFileReader(voice_path + "/" + FlowManage.voicename + ".wav");
             FlowManage.waveOutDevice.Init(FlowManage.audioFileReader);
             FlowManage.waveOutDevice.Play();
+            FlowManage.PlayModeAnimation();
         }
         if (FlowManage.waveOutDevice != null)//音频播放完毕后开始答题
         {
-            if (UserStartAnswer)
+            if (UserStartAnswer)//用户开始回答问题
             {
                 if (FlowManage.waveOutDevice.PlaybackState == PlaybackState.Stopped)
                 {
+                    FlowManage.animName = AnimationControl.GetAnimationClipName(CharacterAction.Looking);
+                    FlowManage.PlayModeAnimation();
                     UserStartAnswer = false;
                     Debug.Log("开始答题");
                     isAnswer = true;
@@ -103,6 +106,8 @@ public class main_test : MonoBehaviour {
             {
                 if (FlowManage.waveOutDevice.PlaybackState == PlaybackState.Stopped)
                 {
+                    FlowManage.animName = AnimationControl.GetAnimationClipName(CharacterAction.Looking);
+                    FlowManage.PlayModeAnimation();
                     if (FlowManage.waveOutDevice != null)
                     {
                         FlowManage.waveOutDevice.Dispose();
@@ -134,6 +139,8 @@ public class main_test : MonoBehaviour {
                 {
                     if (FlowManage.waveOutDevice.PlaybackState == PlaybackState.Stopped)
                     {
+                        FlowManage.animName = AnimationControl.GetAnimationClipName(CharacterAction.Looking);
+                        FlowManage.PlayModeAnimation();
                         if (FlowManage.waveOutDevice != null)
                         {
                             FlowManage.waveOutDevice.Dispose();

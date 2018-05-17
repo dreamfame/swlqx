@@ -9,13 +9,13 @@ namespace Assets.Scripts
     public enum CharacterAction  //人物动作枚举类
     {
         None,
-        Walk,
-        Run,
-        Talk,
-        Jump,
-        Hand,
-        Leg,
-        Foot,
+        Introducing,
+        Thinking,
+        Asking,
+        Wrong,
+        Right,
+        Looking,
+        All,
     }
 
 
@@ -41,28 +41,25 @@ namespace Assets.Scripts
             switch (ca) 
             {
                 case CharacterAction.None:
-                    ActionName = "Take 001";
+                    ActionName = "QUANBUDONGZUO";
                     break;
-                case CharacterAction.Walk:
-                    ActionName = "walk";
+                case CharacterAction.Introducing:
+                    ActionName = "ziwojiesao";
                     break;
-                case CharacterAction.Run:
-                    ActionName = "run";
+                case CharacterAction.Asking:
+                    ActionName = "tiwen";
                     break;
-                case CharacterAction.Talk:
-                    ActionName = "talk";
+                case CharacterAction.Wrong:
+                    ActionName = "huidacuowu";
                     break;
-                case CharacterAction.Jump:
-                    ActionName = "jump";
+                case CharacterAction.Right:
+                    ActionName = "HUIDACUOWU";
                     break;
-                case CharacterAction.Hand:
-                    ActionName = "hand";
+                case CharacterAction.Looking:
+                    ActionName = "KANSHU";
                     break;
-                case CharacterAction.Foot:
-                    ActionName = "foot";
-                    break;
-                case CharacterAction.Leg:
-                    ActionName = "leg";
+                case CharacterAction.Thinking:
+                    ActionName = "sikao";
                     break;
                 default:
                     ActionName = "";

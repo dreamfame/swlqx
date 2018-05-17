@@ -37,6 +37,8 @@ namespace Assets.Scripts
 
         public static AudioFileReader audioFileReader;
 
+        public static string animName = "";
+
         public static bool canDistinguish = true;
 
         public static string content = "";
@@ -49,19 +51,24 @@ namespace Assets.Scripts
         {
             characterModel = go;
             characterAnimation = go.GetComponent<Animation>();
-            String name = AnimationControl.GetAnimationClipName(CharacterAction.None);
-            if (characterAnimation.GetClip(name) == null)
+            animName = AnimationControl.GetAnimationClipName(CharacterAction.Introducing);
+            PlayModeAnimation();
+            AskQuestion aq = new AskQuestion();
+            tempAnswer = aq.GetQuestions();
+        }
+
+        public static void PlayModeAnimation() 
+        {
+            if (characterAnimation.GetClip(animName) == null)
             {
-                Debug.Log("名为" + name + "的动画片段不存在于人物模型中");
+                Debug.Log("名为" + animName + "的动画片段不存在于人物模型中");
                 return;
             }
             else
             {
+                Debug.Log("正在播放" + animName + "动画");
                 characterAnimation.wrapMode = WrapMode.PingPong;
-                characterAnimation.Play(name);
-                AskQuestion aq = new AskQuestion();
-                tempAnswer = aq.GetQuestions();
-                //VoiceManage.VoiceWakeUp();//调用语音唤醒接口
+                characterAnimation.Play(animName);
             }
         }
 
@@ -71,6 +78,7 @@ namespace Assets.Scripts
         /// <param name="no">题号</param>
         public static void M2PMode(int no) 
         {
+            animName = AnimationControl.GetAnimationClipName(CharacterAction.Asking);
             u.ShowM2PAnswerPanel();
             curNo = no;
             if (tempAnswer == null)
@@ -181,8 +189,15 @@ namespace Assets.Scripts
             //进入唤醒状态
         }
 
+
+        /// <summary>
+        /// 流程过渡
+        /// </summary>
+        /// <param name="Mode"></param>
+        /// <param name="txt"></param>
         public static void PlayTransitVoice(int Mode,string txt) 
         {
+            animName = AnimationControl.GetAnimationClipName(CharacterAction.Looking);
             if (FlowManage.waveOutDevice != null)
             {
                 FlowManage.waveOutDevice.Dispose();
@@ -228,6 +243,7 @@ namespace Assets.Scripts
                     string Needle = tempAnswer[curNo - 1].CorrectAnswer;
                     if (answerStr.Equals(Needle) || Needle.Contains(answerStr)&&answerStr!="")
                     {
+                        animName = AnimationControl.GetAnimationClipName(CharacterAction.Right);
                         content = "恭喜你，回答正确";
                         voicename = "correct";
                         u.M2P_Answer_Panel.transform.GetChild(5).gameObject.GetComponent<UILabel>().text = "回答正确";
@@ -258,6 +274,7 @@ namespace Assets.Scripts
                     }
                     else
                     {
+                        animName = AnimationControl.GetAnimationClipName(CharacterAction.Wrong);
                         content = "很遗憾，回答错误，正确答案是" + Needle;
                         voicename = "wrong";
                         u.M2P_Answer_Panel.transform.GetChild(5).gameObject.GetComponent<UILabel>().text = "回答错误";
@@ -307,6 +324,7 @@ namespace Assets.Scripts
                 }
                 else
                 {
+                    animName = AnimationControl.GetAnimationClipName(CharacterAction.Thinking);
                     content = "抱歉,您说了什么，我没有听清";
                     voicename = "sorry"; 
                     u.M2P_Answer_Panel.transform.GetChild(5).gameObject.GetComponent<UILabel>().text = "抱歉,您说了什么，我没有听清";
