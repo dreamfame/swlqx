@@ -158,7 +158,10 @@ namespace Assets.Scripts
                 u.P2M_Ask_Panel.transform.GetChild(4).gameObject.SetActive(true);
                 u.P2M_Ask_Panel.transform.GetChild(4).gameObject.GetComponent<UILabel>().text = VoiceManage.ask_rec_result;
                 Debug.Log("小沙正在思考中...");
-                string answer_result = AIUI.HttpPost(AIUI.TEXT_SEMANTIC_API, "{\"userid\":\"test001\",\"scene\":\"main\"}", "text=" + Utils.Encode(VoiceManage.ask_rec_result));
+                string answer_result = KeywordMatch.GetAnswerByKeywordMatch(VoiceManage.ask_rec_result, mt.BeforeAskList);//AIUI.HttpPost(AIUI.TEXT_SEMANTIC_API, "{\"userid\":\"test001\",\"scene\":\"main\"}", "text=" + Utils.Encode(VoiceManage.ask_rec_result));
+                if (answer_result == string.Empty) {
+                    answer_result = KeywordMatch.GetAnswerByKeywordMatch(VoiceManage.ask_rec_result, mt.AfterAskList);
+                }
                 u.P2M_Ask_Panel.transform.GetChild(6).gameObject.SetActive(true);
                 u.P2M_Ask_Panel.transform.GetChild(6).gameObject.GetComponent<UILabel>().text = answer_result;
                 content = answer_result;

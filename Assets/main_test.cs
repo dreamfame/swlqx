@@ -6,6 +6,7 @@ using NAudio.Wave;
 using Assets.Scripts.SimHash;
 using System.IO;
 using System;
+using System.Collections.Generic;
 
 public class main_test : MonoBehaviour {
 
@@ -51,11 +52,19 @@ public class main_test : MonoBehaviour {
 
     public string voice_path = "";
 
+    public List<Answer> BeforeAskList = new List<Answer>();
+
+    public List<Answer> AfterAskList = new List<Answer>();
+
+    public bool ProjectStart = false;
+
 	// Use this for initialization
 	void Start () {
         if (VoiceManage.MSCLogin() != (int)ErrorCode.MSP_SUCCESS)
         { Debug.Log("登陆失败!" + ret); MSC.MSPLogout(); return; }
         u = Camera.main.GetComponent<UIObject>();
+        BeforeAskList = Answer.LoadQuestions(2, 1);
+        AfterAskList = Answer.LoadQuestions(2, 2);
         init();
 	}
 	
@@ -106,8 +115,6 @@ public class main_test : MonoBehaviour {
             {
                 if (FlowManage.waveOutDevice.PlaybackState == PlaybackState.Stopped)
                 {
-                    FlowManage.animName = AnimationControl.GetAnimationClipName(CharacterAction.Looking);
-                    FlowManage.PlayModeAnimation();
                     if (FlowManage.waveOutDevice != null)
                     {
                         FlowManage.waveOutDevice.Dispose();
@@ -191,6 +198,7 @@ public class main_test : MonoBehaviour {
                     }
                     isFinished = false;
                     FlowManage.canDistinguish = true;
+                    ProjectStart = false;
                     init();
                 }
             }
@@ -198,8 +206,12 @@ public class main_test : MonoBehaviour {
         if (Input.GetMouseButtonDown(1)) 
         {
             //StartCoroutine(EnterM2MMode());
-            curMode = 1;
-            FlowManage.PlayTransitVoice(1, "下面进入沙勿略问我环节。");
+            if (!ProjectStart)
+            {
+                ProjectStart = true;
+                curMode = 1;
+                FlowManage.PlayTransitVoice(1, "下面进入沙勿略问我环节。");
+            }
             //FlowManage.M2PMode(1);
         }
         if (isAnswer)

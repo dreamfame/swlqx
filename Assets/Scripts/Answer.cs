@@ -24,6 +24,14 @@ public class Answer{
 
     public string Analyis { get; set; } //答案解析
 
+    public List<string> keyword1 { get; set; }
+
+    public List<string> keyword2 { get; set; }
+
+    public List<string> keyword3 { get; set; }
+
+    public List<string> keyword4 { get; set; }
+
     /// <summary>
     /// 加载xml文件内的题目信息
     /// </summary>
@@ -65,7 +73,17 @@ public class Answer{
                 a.No = int.Parse(xl1.GetAttribute("题号"));
                 a.title = xl1.GetAttribute("题目");
                 a.CorrectAnswer = xl1.GetAttribute("答案");
-                a.Analyis = xl1.GetAttribute("解析");
+                if (category.Equals(1))
+                {
+                    a.Analyis = xl1.GetAttribute("解析");
+                }
+                if(category.Equals(2))
+                {
+                    a.keyword1 = new List<string>(xl1.GetAttribute("关键词一").Split('/'));
+                    a.keyword2 = new List<string>(xl1.GetAttribute("关键词二").Split('/'));
+                    a.keyword3 = new List<string>(xl1.GetAttribute("关键词三").Split('/'));
+                    a.keyword4 = new List<string>(xl1.GetAttribute("关键词四").Split('/'));
+                }
                 if (xl1.HasChildNodes)
                 {
                     foreach (XmlElement xl2 in xl1.ChildNodes)
