@@ -77,13 +77,10 @@ public class Answer{
                 {
                     a.Analyis = xl1.GetAttribute("解析");
                 }
-                if(category.Equals(2))
-                {
-                    a.keyword1 = new List<string>(xl1.GetAttribute("关键词一").Split('/'));
-                    a.keyword2 = new List<string>(xl1.GetAttribute("关键词二").Split('/'));
-                    a.keyword3 = new List<string>(xl1.GetAttribute("关键词三").Split('/'));
-                    a.keyword4 = new List<string>(xl1.GetAttribute("关键词四").Split('/'));
-                }
+                a.keyword1 = new List<string>(xl1.GetAttribute("关键词一").Split('/'));
+                a.keyword2 = new List<string>(xl1.GetAttribute("关键词二").Split('/'));
+                a.keyword3 = new List<string>(xl1.GetAttribute("关键词三").Split('/'));
+                a.keyword4 = new List<string>(xl1.GetAttribute("关键词四").Split('/'));
                 if (xl1.HasChildNodes)
                 {
                     foreach (XmlElement xl2 in xl1.ChildNodes)

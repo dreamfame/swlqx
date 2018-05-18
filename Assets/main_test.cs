@@ -56,6 +56,8 @@ public class main_test : MonoBehaviour {
 
     public List<Answer> AfterAskList = new List<Answer>();
 
+    public List<Answer> AnswerList = new List<Answer>();
+
     public bool ProjectStart = false;
 
 	// Use this for initialization
@@ -65,6 +67,7 @@ public class main_test : MonoBehaviour {
         u = Camera.main.GetComponent<UIObject>();
         BeforeAskList = Answer.LoadQuestions(2, 1);
         AfterAskList = Answer.LoadQuestions(2, 2);
+        AnswerList = Answer.LoadQuestions(1, 1); 
         init();
 	}
 	

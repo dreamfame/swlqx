@@ -250,79 +250,23 @@ namespace Assets.Scripts
                         content = "恭喜你，回答正确";
                         voicename = "correct";
                         u.M2P_Answer_Panel.transform.GetChild(5).gameObject.GetComponent<UILabel>().text = "回答正确";
-                        if (Needle == "A") 
-                        {
-                            u.M2P_Answer_Panel.transform.GetChild(curNo-1).gameObject.transform.GetChild(0).gameObject.transform.GetChild(0).gameObject.SetActive(true);
-                            u.M2P_Answer_Panel.transform.GetChild(curNo - 1).gameObject.transform.GetChild(0).gameObject.transform.GetChild(1).gameObject.SetActive(false);
-                        }
-                        else if (Needle == "B") 
-                        {
-                            u.M2P_Answer_Panel.transform.GetChild(curNo - 1).gameObject.transform.GetChild(1).gameObject.transform.GetChild(0).gameObject.SetActive(true);
-                            u.M2P_Answer_Panel.transform.GetChild(curNo - 1).gameObject.transform.GetChild(1).gameObject.transform.GetChild(1).gameObject.SetActive(false);
-                        }
-                        else if (Needle == "C") 
-                        {
-                            u.M2P_Answer_Panel.transform.GetChild(curNo - 1).gameObject.transform.GetChild(2).gameObject.transform.GetChild(0).gameObject.SetActive(true);
-                            u.M2P_Answer_Panel.transform.GetChild(curNo - 1).gameObject.transform.GetChild(2).gameObject.transform.GetChild(1).gameObject.SetActive(false);
-                        }
-                        else if (Needle == "A/B/C") 
-                        {
-                            u.M2P_Answer_Panel.transform.GetChild(curNo - 1).gameObject.transform.GetChild(0).gameObject.transform.GetChild(0).gameObject.SetActive(true);
-                            u.M2P_Answer_Panel.transform.GetChild(curNo - 1).gameObject.transform.GetChild(0).gameObject.transform.GetChild(1).gameObject.SetActive(false);
-                            u.M2P_Answer_Panel.transform.GetChild(curNo - 1).gameObject.transform.GetChild(1).gameObject.transform.GetChild(0).gameObject.SetActive(true);
-                            u.M2P_Answer_Panel.transform.GetChild(curNo - 1).gameObject.transform.GetChild(1).gameObject.transform.GetChild(1).gameObject.SetActive(false);
-                            u.M2P_Answer_Panel.transform.GetChild(curNo - 1).gameObject.transform.GetChild(2).gameObject.transform.GetChild(0).gameObject.SetActive(true);
-                            u.M2P_Answer_Panel.transform.GetChild(curNo - 1).gameObject.transform.GetChild(2).gameObject.transform.GetChild(1).gameObject.SetActive(false);
-                        }
                     }
                     else
                     {
-                        animName = AnimationControl.GetAnimationClipName(CharacterAction.Wrong);
-                        content = "很遗憾，回答错误，正确答案是" + Needle;
-                        voicename = "wrong";
-                        u.M2P_Answer_Panel.transform.GetChild(5).gameObject.GetComponent<UILabel>().text = "回答错误";
-                        if (Needle == "A")
+                        if (KeywordMatch.GetResultByKeywordMatch(HayStack, mt.AnswerList))
                         {
-                            u.M2P_Answer_Panel.transform.GetChild(curNo - 1).gameObject.transform.GetChild(0).gameObject.transform.GetChild(0).gameObject.SetActive(true);
-                            u.M2P_Answer_Panel.transform.GetChild(curNo - 1).gameObject.transform.GetChild(0).gameObject.transform.GetChild(1).gameObject.SetActive(false);
-                            u.M2P_Answer_Panel.transform.GetChild(curNo - 1).gameObject.transform.GetChild(1).gameObject.transform.GetChild(0).gameObject.SetActive(false);
-                            u.M2P_Answer_Panel.transform.GetChild(curNo - 1).gameObject.transform.GetChild(1).gameObject.transform.GetChild(1).gameObject.SetActive(true);
-                            u.M2P_Answer_Panel.transform.GetChild(curNo - 1).gameObject.transform.GetChild(2).gameObject.transform.GetChild(0).gameObject.SetActive(false);
-                            u.M2P_Answer_Panel.transform.GetChild(curNo - 1).gameObject.transform.GetChild(2).gameObject.transform.GetChild(1).gameObject.SetActive(true);
-                        }
-                        else if (Needle == "B")
-                        {
-                            u.M2P_Answer_Panel.transform.GetChild(curNo - 1).gameObject.transform.GetChild(0).gameObject.transform.GetChild(0).gameObject.SetActive(true);
-                            u.M2P_Answer_Panel.transform.GetChild(curNo - 1).gameObject.transform.GetChild(0).gameObject.transform.GetChild(1).gameObject.SetActive(false);
-                            u.M2P_Answer_Panel.transform.GetChild(curNo - 1).gameObject.transform.GetChild(1).gameObject.transform.GetChild(0).gameObject.SetActive(true);
-                            u.M2P_Answer_Panel.transform.GetChild(curNo - 1).gameObject.transform.GetChild(1).gameObject.transform.GetChild(1).gameObject.SetActive(false);
-                            u.M2P_Answer_Panel.transform.GetChild(curNo - 1).gameObject.transform.GetChild(2).gameObject.transform.GetChild(0).gameObject.SetActive(false);
-                            u.M2P_Answer_Panel.transform.GetChild(curNo - 1).gameObject.transform.GetChild(2).gameObject.transform.GetChild(1).gameObject.SetActive(true);
-                        }
-                        else if (Needle == "C")
-                        {
-                            u.M2P_Answer_Panel.transform.GetChild(curNo - 1).gameObject.transform.GetChild(0).gameObject.transform.GetChild(0).gameObject.SetActive(true);
-                            u.M2P_Answer_Panel.transform.GetChild(curNo - 1).gameObject.transform.GetChild(0).gameObject.transform.GetChild(1).gameObject.SetActive(false);
-                            u.M2P_Answer_Panel.transform.GetChild(curNo - 1).gameObject.transform.GetChild(1).gameObject.transform.GetChild(0).gameObject.SetActive(false);
-                            u.M2P_Answer_Panel.transform.GetChild(curNo - 1).gameObject.transform.GetChild(1).gameObject.transform.GetChild(1).gameObject.SetActive(true);
-                            u.M2P_Answer_Panel.transform.GetChild(curNo - 1).gameObject.transform.GetChild(2).gameObject.transform.GetChild(0).gameObject.SetActive(true);
-                            u.M2P_Answer_Panel.transform.GetChild(curNo - 1).gameObject.transform.GetChild(2).gameObject.transform.GetChild(1).gameObject.SetActive(false);
-                        }
-                        /*IAnalyser analyser = new SimHashAnalyser();
-                        var likeness = analyser.GetLikenessValue(Needle, HayStack);
-                        Debug.Log("相似度为：" + likeness * 100);
-                        if ((likeness * 100) > 50)
-                        {
-                            Debug.Log("回答正确");
-                            u.M2P_Answer_Panel.transform.GetChild(5).gameObject.SetActive(true);
+                            animName = AnimationControl.GetAnimationClipName(CharacterAction.Right);
+                            content = "恭喜你，回答正确";
+                            voicename = "correct";
                             u.M2P_Answer_Panel.transform.GetChild(5).gameObject.GetComponent<UILabel>().text = "回答正确";
                         }
                         else
                         {
-                            Debug.Log("回答错误");
-                            u.M2P_Answer_Panel.transform.GetChild(5).gameObject.SetActive(true);
+                            animName = AnimationControl.GetAnimationClipName(CharacterAction.Wrong);
+                            content = "很遗憾，回答错误，正确答案是" + Needle;
+                            voicename = "wrong";
                             u.M2P_Answer_Panel.transform.GetChild(5).gameObject.GetComponent<UILabel>().text = "回答错误";
-                        }*/
+                        }
                     }
                 }
                 else
