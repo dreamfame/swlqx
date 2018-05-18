@@ -16,6 +16,10 @@ namespace Assets.Scripts
 
         private static bool containK4 = false;
 
+        private static int HitTimes = 0;
+
+        private static Dictionary<Answer,int> answerHitList = new Dictionary<Answer,int>();
+
         public static string GetAnswerByKeywordMatch(string speechStr,List<Answer> QuestionLibrary) 
         {
             string MatchedAnswer = "";
@@ -28,6 +32,7 @@ namespace Assets.Scripts
                         if (speechStr.Contains(s1))
                         {
                             containK1 = true;
+                            HitTimes++;
                         }
                     }
                 }
@@ -44,6 +49,7 @@ namespace Assets.Scripts
                             if (speechStr.Contains(s2))
                             {
                                 containK2 = true;
+                                HitTimes++;
                             }
                         }
                     }
@@ -61,6 +67,7 @@ namespace Assets.Scripts
                             if (speechStr.Contains(s3))
                             {
                                 containK3 = true;
+                                HitTimes++;
                             }
                         }
                     }
@@ -78,6 +85,7 @@ namespace Assets.Scripts
                             if (speechStr.Contains(s4))
                             {
                                 containK4 = true;
+                                HitTimes++;
                             }
                         }
                     }
@@ -88,10 +96,15 @@ namespace Assets.Scripts
                 }
                 if (containK1 && containK2 && containK3 && containK4) 
                 {
-                    MatchedAnswer = a.CorrectAnswer;
+                    answerHitList.Add(a,HitTimes);
                     containK1 = containK2 = containK3 = containK4 = false;
-                    break;
+                    HitTimes = 0;
                 }
+            }
+            if (answerHitList.Count > 0)
+            {
+                var MaxHitAnswer = answerHitList.First(a => a.Value == answerHitList.Values.Max());
+                MatchedAnswer = MaxHitAnswer.Key.CorrectAnswer;
             }
             if (MatchedAnswer == "") 
             {
