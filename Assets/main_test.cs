@@ -89,6 +89,10 @@ public class main_test : MonoBehaviour {
             FlowManage.waveOutDevice.Init(FlowManage.audioFileReader);
             FlowManage.waveOutDevice.Play();
             FlowManage.PlayModeAnimation();
+            if (curMode == 1 && UserStartAnswer) 
+            {
+                FlowManage.ShowQuestionInfo();
+            }
         }
         if (FlowManage.waveOutDevice != null)//音频播放完毕后开始答题
         {
@@ -296,19 +300,15 @@ public class main_test : MonoBehaviour {
         }
         u.HideM2PAnswerPanel();
         u.HideP2MAskPanel();
-        u.M2P_Answer_Panel.transform.GetChild(5).gameObject.GetComponent<UILabel>().text = "";
-        for (var i = 0; i <= 2; i++)
-        {
-            u.M2P_Answer_Panel.transform.GetChild(i).gameObject.SetActive(false);
-            u.M2P_Answer_Panel.transform.GetChild(i).gameObject.transform.GetChild(0).gameObject.transform.GetChild(0).gameObject.SetActive(false);
-            u.M2P_Answer_Panel.transform.GetChild(i).gameObject.transform.GetChild(0).gameObject.transform.GetChild(1).gameObject.SetActive(false);
-            u.M2P_Answer_Panel.transform.GetChild(i).gameObject.transform.GetChild(1).gameObject.transform.GetChild(0).gameObject.SetActive(false);
-            u.M2P_Answer_Panel.transform.GetChild(i).gameObject.transform.GetChild(1).gameObject.transform.GetChild(1).gameObject.SetActive(false);
-            u.M2P_Answer_Panel.transform.GetChild(i).gameObject.transform.GetChild(2).gameObject.transform.GetChild(0).gameObject.SetActive(false);
-            u.M2P_Answer_Panel.transform.GetChild(i).gameObject.transform.GetChild(2).gameObject.transform.GetChild(1).gameObject.SetActive(false);
-        }
-        u.P2M_Ask_Panel.transform.GetChild(4).gameObject.SetActive(false);
-        u.P2M_Ask_Panel.transform.GetChild(6).gameObject.SetActive(false);
+        u.M2P_Answer_Panel.transform.GetChild(0).transform.GetChild(0).gameObject.GetComponent<UILabel>().text = "";
+        u.M2P_Answer_Panel.transform.GetChild(1).transform.GetChild(0).gameObject.GetComponent<UILabel>().text = "";
+        u.M2P_Answer_Panel.transform.GetChild(1).transform.GetChild(1).gameObject.GetComponent<UILabel>().text = "";
+        u.M2P_Answer_Panel.transform.GetChild(1).transform.GetChild(2).gameObject.GetComponent<UILabel>().text = "";
+        u.M2P_Answer_Panel.transform.GetChild(2).gameObject.GetComponent<UILabel>().text = "";
+        u.P2M_Ask_Panel.transform.GetChild(0).transform.GetChild(1).gameObject.SetActive(false);
+        u.P2M_Ask_Panel.transform.GetChild(0).transform.GetChild(1).gameObject.GetComponent<UILabel>().text = "";
+        u.P2M_Ask_Panel.transform.GetChild(1).transform.GetChild(1).gameObject.SetActive(false);
+        u.P2M_Ask_Panel.transform.GetChild(1).transform.GetChild(1).gameObject.GetComponent<UILabel>().text = "";
         CharacterModel.GetComponent<Animation>().Stop();
         FlowManage.EnterStandBy(CharacterModel);
     }

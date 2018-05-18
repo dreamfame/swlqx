@@ -78,8 +78,8 @@ namespace Assets.Scripts
         /// <param name="no">题号</param>
         public static void M2PMode(int no) 
         {
+            u.M2P_Answer_Panel.transform.GetChild(2).gameObject.GetComponent<UILabel>().text = "";
             animName = AnimationControl.GetAnimationClipName(CharacterAction.Asking);
-            u.ShowM2PAnswerPanel();
             curNo = no;
             if (tempAnswer == null)
             {
@@ -87,12 +87,6 @@ namespace Assets.Scripts
             }
             else//机器读出并在界面显示问题内容
             {
-                u.M2P_Answer_Panel.transform.GetChild(curNo - 1).gameObject.SetActive(true);
-                u.M2P_Answer_Panel.transform.GetChild(curNo - 1).gameObject.GetComponent<UILabel>().text = curNo + "." + tempAnswer[no - 1].title;
-                u.M2P_Answer_Panel.transform.GetChild(curNo - 1).gameObject.transform.GetChild(0).GetComponent<UILabel>().text = "A." + tempAnswer[no - 1].answerA;
-                u.M2P_Answer_Panel.transform.GetChild(curNo - 1).gameObject.transform.GetChild(1).GetComponent<UILabel>().text = "B." + tempAnswer[no - 1].answerB;
-                u.M2P_Answer_Panel.transform.GetChild(curNo - 1).gameObject.transform.GetChild(2).GetComponent<UILabel>().text = "C." + tempAnswer[no - 1].answerC;
-                //vm.PlayVoice(tempAnswer[curNo - 1].title, "subject" + curNo, "Assets/Resources/Voice");
                 content = "第"+curNo+"题."+tempAnswer[curNo - 1].title;
                 voicename = "subject" + curNo;
                 Thread thread_question = new Thread(new ThreadStart(playVoice));
@@ -100,6 +94,15 @@ namespace Assets.Scripts
                 thread_question.Start();
                 FlowManage.StartUserAnswer();
             }
+        }
+
+        public static void ShowQuestionInfo() 
+        {
+            u.ShowM2PAnswerPanel();
+            u.M2P_Answer_Panel.transform.GetChild(0).gameObject.transform.GetChild(0).gameObject.GetComponent<UILabel>().text = curNo + "." + tempAnswer[curNo - 1].title;
+            u.M2P_Answer_Panel.transform.GetChild(1).gameObject.transform.GetChild(0).gameObject.GetComponent<UILabel>().text = "A." + tempAnswer[curNo - 1].answerA;
+            u.M2P_Answer_Panel.transform.GetChild(1).gameObject.transform.GetChild(1).gameObject.GetComponent<UILabel>().text = "B." + tempAnswer[curNo - 1].answerB;
+            u.M2P_Answer_Panel.transform.GetChild(1).gameObject.transform.GetChild(2).gameObject.GetComponent<UILabel>().text = "C." + tempAnswer[curNo - 1].answerC;
         }
 
         static object obj = new object();
@@ -141,13 +144,10 @@ namespace Assets.Scripts
                 FlowManage.audioFileReader.Close();
                 FlowManage.audioFileReader = null;
             }
-            Debug.Log("进入我问沙勿略模式");
-            //string result = n.StopRec();
-            //Debug.Log(string.Format("-->语音信息:{0}", result));
             if (VoiceManage.ask_rec_result == string.Empty || VoiceManage.ask_rec_result == null)
             {
-                u.P2M_Ask_Panel.transform.GetChild(4).gameObject.SetActive(true);
-                u.P2M_Ask_Panel.transform.GetChild(4).gameObject.GetComponent<UILabel>().text = "对不起，我没有听清您说的话！可以再说一次吗？";
+                u.P2M_Ask_Panel.transform.GetChild(0).gameObject.transform.GetChild(1).gameObject.SetActive(true);
+                u.P2M_Ask_Panel.transform.GetChild(0).gameObject.transform.GetChild(1).gameObject.GetComponent<UILabel>().text = "对不起，我没有听清您说的话！可以再说一次吗？";
                 content = "对不起，我没有听清您说的话！可以再说一次吗？";
                 voicename = "answer";
                 mt.FinishedAnswer = true;
@@ -155,18 +155,17 @@ namespace Assets.Scripts
             }
             else
             {
-                u.P2M_Ask_Panel.transform.GetChild(4).gameObject.SetActive(true);
-                u.P2M_Ask_Panel.transform.GetChild(4).gameObject.GetComponent<UILabel>().text = VoiceManage.ask_rec_result;
+                u.P2M_Ask_Panel.transform.GetChild(0).gameObject.transform.GetChild(1).gameObject.SetActive(true);
+                u.P2M_Ask_Panel.transform.GetChild(0).gameObject.transform.GetChild(1).gameObject.GetComponent<UILabel>().text = VoiceManage.ask_rec_result;
                 Debug.Log("小沙正在思考中...");
                 string answer_result = KeywordMatch.GetAnswerByKeywordMatch(VoiceManage.ask_rec_result, mt.BeforeAskList);//AIUI.HttpPost(AIUI.TEXT_SEMANTIC_API, "{\"userid\":\"test001\",\"scene\":\"main\"}", "text=" + Utils.Encode(VoiceManage.ask_rec_result));
                 if (answer_result == string.Empty) {
                     answer_result = KeywordMatch.GetAnswerByKeywordMatch(VoiceManage.ask_rec_result, mt.AfterAskList);
                 }
-                u.P2M_Ask_Panel.transform.GetChild(6).gameObject.SetActive(true);
-                u.P2M_Ask_Panel.transform.GetChild(6).gameObject.GetComponent<UILabel>().text = answer_result;
+                u.P2M_Ask_Panel.transform.GetChild(1).gameObject.transform.GetChild(1).gameObject.SetActive(true);
+                u.P2M_Ask_Panel.transform.GetChild(1).gameObject.transform.GetChild(1).gameObject.GetComponent<UILabel>().text = answer_result;
                 content = answer_result;
                 voicename = "answer";
-                Debug.Log("答案：" + answer_result);
                 mt.FinishedAnswer = true;
                 if (answer_result.Equals("抱歉，这个问题我还不知道，问答结束！")) 
                 {
@@ -183,7 +182,6 @@ namespace Assets.Scripts
                     mt.FinishedAnswer = false;
                     VoiceManage.StopSpeech();
                 }
-                Debug.Log(string.Format("-->小沙回答:{0}", VoiceManage.ask_rec_result));
             }
             Thread thread_answer = new Thread(new ThreadStart(playVoice));
             thread_answer.IsBackground = true;
@@ -235,7 +233,7 @@ namespace Assets.Scripts
             if (nar.waveSource != null)
             {
                 string retString = nar.StopRec();
-                Debug.Log("回答的是："+retString);
+                u.M2P_Answer_Panel.transform.GetChild(2).gameObject.GetComponent<UILabel>().text = retString;
                 mt.AnswerAnalysis = true;
                 if (retString != "")
                 {
@@ -249,7 +247,7 @@ namespace Assets.Scripts
                         animName = AnimationControl.GetAnimationClipName(CharacterAction.Right);
                         content = "恭喜你，回答正确";
                         voicename = "correct";
-                        u.M2P_Answer_Panel.transform.GetChild(5).gameObject.GetComponent<UILabel>().text = "回答正确";
+                        u.M2P_Answer_Panel.transform.GetChild(2).gameObject.GetComponent<UILabel>().text = "回答正确";
                     }
                     else
                     {
@@ -258,14 +256,14 @@ namespace Assets.Scripts
                             animName = AnimationControl.GetAnimationClipName(CharacterAction.Right);
                             content = "恭喜你，回答正确";
                             voicename = "correct";
-                            u.M2P_Answer_Panel.transform.GetChild(5).gameObject.GetComponent<UILabel>().text = "回答正确";
+                            u.M2P_Answer_Panel.transform.GetChild(2).gameObject.GetComponent<UILabel>().text = "回答正确";
                         }
                         else
                         {
                             animName = AnimationControl.GetAnimationClipName(CharacterAction.Wrong);
                             content = "很遗憾，回答错误，正确答案是" + Needle;
                             voicename = "wrong";
-                            u.M2P_Answer_Panel.transform.GetChild(5).gameObject.GetComponent<UILabel>().text = "回答错误";
+                            u.M2P_Answer_Panel.transform.GetChild(2).gameObject.GetComponent<UILabel>().text = "回答错误";
                         }
                     }
                 }
@@ -274,7 +272,7 @@ namespace Assets.Scripts
                     animName = AnimationControl.GetAnimationClipName(CharacterAction.Thinking);
                     content = "抱歉,您说了什么，我没有听清";
                     voicename = "sorry"; 
-                    u.M2P_Answer_Panel.transform.GetChild(5).gameObject.GetComponent<UILabel>().text = "抱歉,您说了什么，我没有听清";
+                    u.M2P_Answer_Panel.transform.GetChild(2).gameObject.GetComponent<UILabel>().text = "抱歉,您说了什么，我没有听清";
                 }
                 Thread thread_analysis = new Thread(new ThreadStart(playVoice));
                 thread_analysis.IsBackground = true;
