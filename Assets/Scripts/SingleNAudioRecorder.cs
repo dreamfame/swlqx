@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using NAudio.Wave;
 using UnityEngine;
+using System.Threading;
 
 namespace Assets.Scripts
 {
@@ -12,6 +13,9 @@ namespace Assets.Scripts
         public WaveIn waveSource = null;
         public WaveFileWriter waveFile = null;
         private string fileName = "";
+        private static main_test mt;
+
+        public static string result = "";
 
         public void StartRec() 
         {
@@ -27,9 +31,9 @@ namespace Assets.Scripts
         /// <summary>
         /// 停止录音
         /// </summary>
-        public string StopRec()
+        public void StopRec()
         {
-            string result = "";
+            mt = Camera.main.GetComponent<main_test>();
             waveSource.StopRecording();
             if (waveSource != null)
             {
@@ -41,8 +45,22 @@ namespace Assets.Scripts
                 waveFile.Dispose();
                 waveFile = null;
             }
-            result = new VoiceManage().SingleVoiceDistinguish();
-            return result;
+            Thread thread = new Thread(new ThreadStart(Distinguish));
+            thread.IsBackground = true;
+            thread.Start();
+        }
+
+        static object obj = new object();
+
+        static void Distinguish()
+        {
+            lock (obj)
+            {
+                if (new VoiceManage().SingleVoiceDistinguish() == RecogStatus.ISR_REC_STATUS_SPEECH_COMPLETE) 
+                {
+                    mt.successDistinguish = true;
+                }
+            }
         }
 
         /// <summary>

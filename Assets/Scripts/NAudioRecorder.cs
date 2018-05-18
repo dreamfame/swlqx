@@ -66,31 +66,31 @@ namespace Assets.Scripts
         /// <param name="e"></param>
         private void waveSource_DataAvailable(object sender, WaveInEventArgs e)
         {
-            totalBufferLength += e.Buffer.Length;
-            secondsRecorded = (float)(totalBufferLength / 32000);
-
-            VoiceData data = new VoiceData();
-            for (int i = 0; i < 3200; i++)
+            if (FlowManage.canDistinguish)
             {
-                data.data[i] = e.Buffer[i];
-            }
-            VoiceBuffer.Add(data);
+                totalBufferLength += e.Buffer.Length;
+                secondsRecorded = (float)(totalBufferLength / 32000);
 
-            if (lastPeak < 20)
-                Ends = Ends - 1;
-            else
-                Ends = 5;
-            if (Ends == 0)
-            {
-                if (VoiceBuffer.Count() > 5)
+                VoiceData data = new VoiceData();
+                for (int i = 0; i < 3200; i++)
                 {
-                    if (FlowManage.canDistinguish)
+                    data.data[i] = e.Buffer[i];
+                }
+                VoiceBuffer.Add(data);
+
+                if (lastPeak < 20)
+                    Ends = Ends - 1;
+                else
+                    Ends = 5;
+                if (Ends == 0)
+                {
+                    if (VoiceBuffer.Count() > 5)
                     {
                         VoiceManage.SpeechRecognition(VoiceBuffer);//调用语音识别
                     }
+                    VoiceBuffer.Clear();
+                    Ends = 5;
                 }
-                VoiceBuffer.Clear();
-                Ends = 5;
             }
         }
 

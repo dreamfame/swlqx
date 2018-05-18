@@ -40,6 +40,8 @@ public class main_test : MonoBehaviour {
 
     public bool isTransit = false;
 
+    public bool successDistinguish = false;
+
     private int curMode = 0;
 
     NAudioRecorder nar = new NAudioRecorder();
@@ -228,8 +230,13 @@ public class main_test : MonoBehaviour {
             {
                 isAnswer = false;
                 answer_time = 0f;
-                FlowManage.StopAnswer(singleNar);
+                singleNar.StopRec();
             }
+        }
+        if (curMode == 1&&successDistinguish) 
+        {
+            FlowManage.StopAnswer();
+            successDistinguish = false;
         }
         if (flow_change) 
         {
@@ -304,6 +311,7 @@ public class main_test : MonoBehaviour {
         u.M2P_Answer_Panel.transform.GetChild(1).transform.GetChild(0).gameObject.GetComponent<UILabel>().text = "";
         u.M2P_Answer_Panel.transform.GetChild(1).transform.GetChild(1).gameObject.GetComponent<UILabel>().text = "";
         u.M2P_Answer_Panel.transform.GetChild(1).transform.GetChild(2).gameObject.GetComponent<UILabel>().text = "";
+        u.M2P_Answer_Panel.transform.GetChild(3).gameObject.GetComponent<UILabel>().text = "";
         u.M2P_Answer_Panel.transform.GetChild(2).gameObject.GetComponent<UILabel>().text = "";
         u.P2M_Ask_Panel.transform.GetChild(0).transform.GetChild(1).gameObject.SetActive(false);
         u.P2M_Ask_Panel.transform.GetChild(0).transform.GetChild(1).gameObject.GetComponent<UILabel>().text = "";

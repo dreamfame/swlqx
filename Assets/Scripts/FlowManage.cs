@@ -79,6 +79,7 @@ namespace Assets.Scripts
         public static void M2PMode(int no) 
         {
             u.M2P_Answer_Panel.transform.GetChild(2).gameObject.GetComponent<UILabel>().text = "";
+            u.M2P_Answer_Panel.transform.GetChild(3).gameObject.GetComponent<UILabel>().text = "";
             animName = AnimationControl.GetAnimationClipName(CharacterAction.Asking);
             curNo = no;
             if (tempAnswer == null)
@@ -114,7 +115,6 @@ namespace Assets.Scripts
                 Debug.Log("内容是：" + content + "=====文件名是：" + voicename);
                 if (vm.PlayVoice(content, voicename, mt.voice_path) == SynthStatus.MSP_TTS_FLAG_DATA_END)
                 {
-                    canDistinguish = true;
                     mt.canPlay = true;
                 }
             }
@@ -159,7 +159,8 @@ namespace Assets.Scripts
                 u.P2M_Ask_Panel.transform.GetChild(0).gameObject.transform.GetChild(1).gameObject.GetComponent<UILabel>().text = VoiceManage.ask_rec_result;
                 Debug.Log("小沙正在思考中...");
                 string answer_result = KeywordMatch.GetAnswerByKeywordMatch(VoiceManage.ask_rec_result, mt.BeforeAskList);//AIUI.HttpPost(AIUI.TEXT_SEMANTIC_API, "{\"userid\":\"test001\",\"scene\":\"main\"}", "text=" + Utils.Encode(VoiceManage.ask_rec_result));
-                if (answer_result == string.Empty) {
+                if (answer_result.Equals("抱歉，这个问题我还不知道，问答结束！"))
+                {
                     answer_result = KeywordMatch.GetAnswerByKeywordMatch(VoiceManage.ask_rec_result, mt.AfterAskList);
                 }
                 u.P2M_Ask_Panel.transform.GetChild(1).gameObject.transform.GetChild(1).gameObject.SetActive(true);
@@ -228,21 +229,28 @@ namespace Assets.Scripts
         /// <summary>
         /// 停止回答（沙勿略问我）
         /// </summary>
-        public static void StopAnswer(SingleNAudioRecorder nar) 
+        public static void StopAnswer() 
         {
-            if (nar.waveSource != null)
+            string retString = VoiceManage.rec_result;
+            u.M2P_Answer_Panel.transform.GetChild(3).gameObject.GetComponent<UILabel>().text = retString;
+            mt.AnswerAnalysis = true;
+            if (retString != "")
             {
-                string retString = nar.StopRec();
-                u.M2P_Answer_Panel.transform.GetChild(2).gameObject.GetComponent<UILabel>().text = retString;
-                mt.AnswerAnalysis = true;
-                if (retString != "")
+                string HayStack = retString;
+                Regex r = new Regex(@"[a-zA-Z]+");
+                Match m = r.Match(HayStack);
+                string answerStr = m.Value.ToUpper().Trim();
+                string Needle = tempAnswer[curNo - 1].CorrectAnswer;
+                if (answerStr.Equals(Needle) || Needle.Contains(answerStr) && answerStr != "")
                 {
-                    string HayStack = retString;
-                    Regex r = new Regex(@"[a-zA-Z]+");
-                    Match m = r.Match(HayStack);
-                    string answerStr = m.Value.ToUpper().Trim();
-                    string Needle = tempAnswer[curNo - 1].CorrectAnswer;
-                    if (answerStr.Equals(Needle) || Needle.Contains(answerStr)&&answerStr!="")
+                    animName = AnimationControl.GetAnimationClipName(CharacterAction.Right);
+                    content = "恭喜你，回答正确";
+                    voicename = "correct";
+                    u.M2P_Answer_Panel.transform.GetChild(2).gameObject.GetComponent<UILabel>().text = "回答正确";
+                }
+                else
+                {
+                    if (KeywordMatch.GetResultByKeywordMatch(HayStack, mt.AnswerList))
                     {
                         animName = AnimationControl.GetAnimationClipName(CharacterAction.Right);
                         content = "恭喜你，回答正确";
@@ -251,33 +259,23 @@ namespace Assets.Scripts
                     }
                     else
                     {
-                        if (KeywordMatch.GetResultByKeywordMatch(HayStack, mt.AnswerList))
-                        {
-                            animName = AnimationControl.GetAnimationClipName(CharacterAction.Right);
-                            content = "恭喜你，回答正确";
-                            voicename = "correct";
-                            u.M2P_Answer_Panel.transform.GetChild(2).gameObject.GetComponent<UILabel>().text = "回答正确";
-                        }
-                        else
-                        {
-                            animName = AnimationControl.GetAnimationClipName(CharacterAction.Wrong);
-                            content = "很遗憾，回答错误，正确答案是" + Needle;
-                            voicename = "wrong";
-                            u.M2P_Answer_Panel.transform.GetChild(2).gameObject.GetComponent<UILabel>().text = "回答错误";
-                        }
+                        animName = AnimationControl.GetAnimationClipName(CharacterAction.Wrong);
+                        content = "很遗憾，回答错误，正确答案是" + Needle;
+                        voicename = "wrong";
+                        u.M2P_Answer_Panel.transform.GetChild(2).gameObject.GetComponent<UILabel>().text = "回答错误";
                     }
                 }
-                else
-                {
-                    animName = AnimationControl.GetAnimationClipName(CharacterAction.Thinking);
-                    content = "抱歉,您说了什么，我没有听清";
-                    voicename = "sorry"; 
-                    u.M2P_Answer_Panel.transform.GetChild(2).gameObject.GetComponent<UILabel>().text = "抱歉,您说了什么，我没有听清";
-                }
-                Thread thread_analysis = new Thread(new ThreadStart(playVoice));
-                thread_analysis.IsBackground = true;
-                thread_analysis.Start();
             }
+            else
+            {
+                animName = AnimationControl.GetAnimationClipName(CharacterAction.Thinking);
+                content = "抱歉,您说了什么，我没有听清";
+                voicename = "sorry";
+                u.M2P_Answer_Panel.transform.GetChild(2).gameObject.GetComponent<UILabel>().text = "抱歉,您说了什么，我没有听清";
+            }
+            Thread thread_analysis = new Thread(new ThreadStart(playVoice));
+            thread_analysis.IsBackground = true;
+            thread_analysis.Start();
         }
-	}
+    }
 }
