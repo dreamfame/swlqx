@@ -10,39 +10,31 @@ using System.Collections.Generic;
 
 public class main_test : MonoBehaviour {
 
-    public GameObject CharacterModel;
+    public GameObject CharacterModel;  //人物模型对象
 
-    public bool isPlayed = false;
+    public int ret = 0;  //  调用MSC接口返回值
 
-    public int ret = 0;
+    public float answer_time = 0f;  //沙勿略问我答题时间控制变量（10秒答题时间）
 
-    string session_ID;
+    public bool UserStartAnswer = false;  //开始答题（当为true时用户可开始答题）
 
-    public float answer_time = 0f;
+    public bool isAnswer = false;   // 是否正在答题（当为true时开始答题计时）
 
-    public bool UserStartAnswer = false;
+    public bool AnswerAnalysis = false;  //  答完题后分析答案（当为true时分析完毕）
 
-    public bool isAnswer = false;
+    public bool flow_change = false;   // 流程切换标识（当为true时切换流程）
 
-    public bool AnswerAnalysis = false;
+    public bool FinishedAnswer = false;   // 完成回答标识（我问沙勿略环节，机器给出答案，当为true时标志完成）
 
-    public bool AskMode = false;
+    public bool canPlay = false;  // 合成语音音频可播放标识（当为true时标志语音合成完成，并播放音频）
 
-    public bool flow_change = false;
+    public bool isFinished = false; // 我问沙勿略环节结束标识（当为true时整个流程结束，回到初始状态）
 
-    public bool FinishedAnswer = false;
+    public bool isTransit = false;  // 环节间过渡标识（当为true时完成过渡）
 
-    public bool canPlay = false;
+    public bool successDistinguish = false;  //成功识别标识（沙勿略问我环节，用户回答完进行识别，当为true时标识识别完成，并在界面给出相应结果）
 
-    public float wait_time = 0f;
-
-    public bool isFinished = false;
-
-    public bool isTransit = false;
-
-    public bool successDistinguish = false;
-
-    private int curMode = 0;
+    private int curMode = 0;  // 当前环节变量（当为0时为待机状态，当为1时为沙勿略问我环节，当为2时为我问沙勿略环节）
 
     NAudioRecorder nar = new NAudioRecorder();
 
@@ -50,36 +42,44 @@ public class main_test : MonoBehaviour {
 
     private static UIObject u;
 
-    public float once_ask_time = 0f;
+    public string voice_path = ""; //音频存放目录
 
-    public string voice_path = "";
+    public List<Answer> BeforeAskList = new List<Answer>();   // 我问沙勿略前半生题库
 
-    public List<Answer> BeforeAskList = new List<Answer>();
+    public List<Answer> AfterAskList = new List<Answer>();    // 我问沙勿略后半生题库
 
-    public List<Answer> AfterAskList = new List<Answer>();
+    public List<Answer> AnswerList = new List<Answer>();      // 沙勿略问我题库
 
-    public List<Answer> AnswerList = new List<Answer>();
+    public M1101Ctrl mc = null;
 
-    public bool ProjectStart = false;
+    public bool FlowStart = false;   //流程开始标识
 
 	// Use this for initialization
 	void Start () {
         if (VoiceManage.MSCLogin() != (int)ErrorCode.MSP_SUCCESS)
         { Debug.Log("登陆失败!" + ret); MSC.MSPLogout(); return; }
+        mc = new M1101Ctrl();
+        mc.mResultAction = FlowStartAction;
         u = Camera.main.GetComponent<UIObject>();
         BeforeAskList = Answer.LoadQuestions(2, 1);
         AfterAskList = Answer.LoadQuestions(2, 2);
         AnswerList = Answer.LoadQuestions(1, 1); 
         init();
 	}
+
+    void FlowStartAction(bool a) 
+    {
+        FlowStart = a;
+    }
 	
 	// Update is called once per frame
 	void Update () {
 
-        if (Input.GetKeyDown(KeyCode.R))
+        if (FlowStart) //监听流程是否开始
         {
-            VoiceManage vm = new VoiceManage();
-            vm.VoiceDistinguish();
+            FlowStart = false;
+            curMode = 1;
+            FlowManage.PlayTransitVoice(1, "下面进入沙勿略问我环节。");
         }
 
         if (canPlay) //语音合成完毕并生成音频后播放
@@ -207,23 +207,22 @@ public class main_test : MonoBehaviour {
                     }
                     isFinished = false;
                     FlowManage.canDistinguish = true;
-                    ProjectStart = false;
+                    FlowStart = false;
                     init();
                 }
             }
         }
         if (Input.GetMouseButtonDown(1)) 
         {
-            //StartCoroutine(EnterM2MMode());
-            if (!ProjectStart)
+            if (!FlowStart)
             {
-                ProjectStart = true;
+                FlowStart = true;
                 curMode = 1;
                 FlowManage.PlayTransitVoice(1, "下面进入沙勿略问我环节。");
             }
-            //FlowManage.M2PMode(1);
         }
-        if (isAnswer)
+
+        if (isAnswer) //答题计时
         {
             answer_time += Time.deltaTime;
             if (answer_time >= 10)
@@ -238,7 +237,7 @@ public class main_test : MonoBehaviour {
             FlowManage.StopAnswer();
             successDistinguish = false;
         }
-        if (flow_change) 
+        if (flow_change) //切换流程
         {
             flow_change = false;
             if (curMode == 1) 
@@ -255,18 +254,7 @@ public class main_test : MonoBehaviour {
                 vm.VoiceDistinguish();
                 //nar.StartRec();
             }
-        }
-        
-        if (AskMode) 
-        {
-            once_ask_time += Time.deltaTime;
-            if (once_ask_time >= 10) 
-            {
-                AskMode = false;
-                once_ask_time = 0f;
-                FlowManage.P2MMode(nar);
-            }
-        }
+        }     
 	}
 
     /// <summary>
@@ -275,19 +263,15 @@ public class main_test : MonoBehaviour {
     public void init()
     {
         curMode = 0;
-        isPlayed = false;
         answer_time = 0f;
         UserStartAnswer = false;
         isAnswer = false;
         AnswerAnalysis = false;
-        AskMode = false;
         flow_change = false;
         FinishedAnswer = false;
         canPlay = false;
-        wait_time = 0f;
         isFinished = false;
         isTransit = false;
-        once_ask_time = 0f;
         voice_path = Application.dataPath + "/Resources/Voice";
         if (CharacterModel == null)
         {
@@ -321,6 +305,10 @@ public class main_test : MonoBehaviour {
         FlowManage.EnterStandBy(CharacterModel);
     }
 
+
+    /// <summary>
+    /// 程序退出
+    /// </summary>
     void OnApplicationQuit()
     {
         VoiceManage.MSCLogout();

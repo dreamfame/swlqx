@@ -8,16 +8,6 @@ namespace Assets.Scripts
 {
 	public class KeywordMatch
 	{
-        private static bool containK1 = false;
-
-        private static bool containK2 = false;
-
-        private static bool containK3 = false;
-
-        private static bool containK4 = false;
-
-        private static int HitTimes = 0;
-
         private static Dictionary<Answer,int> answerHitList = new Dictionary<Answer,int>();
 
         private static List<Answer> TempAnswerList1 = new List<Answer>();
@@ -28,6 +18,13 @@ namespace Assets.Scripts
 
         private static List<Answer> TempAnswerList4 = new List<Answer>();
 
+
+        /// <summary>
+        /// 我问沙勿略关键词匹配答案
+        /// </summary>
+        /// <param name="speechStr">识别字符串</param>
+        /// <param name="QuestionLibrary">题库</param>
+        /// <returns>正确答案</returns>
         public static string GetAnswerByKeywordMatch(string speechStr,List<Answer> QuestionLibrary) 
         {
             string MatchedAnswer = "";
@@ -237,9 +234,20 @@ namespace Assets.Scripts
             return MatchedAnswer;
         }
 
+
+        /// <summary>
+        /// 沙勿略问我关键词匹配结果
+        /// </summary>
+        /// <param name="speechStr">识别字符串</param>
+        /// <param name="AnswerLibrary">题库</param>
+        /// <returns>判断正确结果</returns>
         public static bool GetResultByKeywordMatch(string speechStr,List<Answer> AnswerLibrary)
         {
             bool isRight = false;
+            TempAnswerList1.Clear();
+            TempAnswerList2.Clear();
+            TempAnswerList3.Clear();
+            TempAnswerList4.Clear();
             foreach (var a in AnswerLibrary)
             {
                 if (a.keyword1[0] != "")
@@ -248,74 +256,110 @@ namespace Assets.Scripts
                     {
                         if (speechStr.Contains(s1))
                         {
-                            containK1 = true;
-                            HitTimes++;
+                            TempAnswerList1.Add(a);
                         }
                     }
                 }
-                else
+            }
+            if (TempAnswerList1.Count == 0)
+            {
+                isRight = false;
+            }
+            else if (TempAnswerList1.Count == 1)
+            {
+                isRight = true;
+            }
+            else
+            {
+                foreach (var t in TempAnswerList1)
                 {
-                    break;
-                }
-                if (containK1)
-                {
-                    if (a.keyword2[0] != "")
+                    if (t.keyword2[0] != "")
                     {
-                        foreach (var s2 in a.keyword2)
+                        foreach (var s2 in t.keyword2)
                         {
                             if (speechStr.Contains(s2))
                             {
-                                containK2 = true;
-                                HitTimes++;
+                                TempAnswerList2.Add(t);
                             }
                         }
                     }
-                    else
-                    {
-                        containK2 = true;
-                    }
                 }
-                if (containK2)
+                if (TempAnswerList2.Count == 0)
                 {
-                    if (a.keyword3[0] != "")
+                    if (TempAnswerList1[0].keyword2[0] == "")
                     {
-                        foreach (var s3 in a.keyword3)
-                        {
-                            if (speechStr.Contains(s3))
-                            {
-                                containK3 = true;
-                                HitTimes++;
-                            }
-                        }
+                        isRight = true;
                     }
                     else
                     {
-                        containK3 = true;
+                        isRight = false;
                     }
                 }
-                if (containK3)
-                {
-                    if (a.keyword4[0] != "")
-                    {
-                        foreach (var s4 in a.keyword4)
-                        {
-                            if (speechStr.Contains(s4))
-                            {
-                                containK4 = true;
-                                HitTimes++;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        containK4 = true;
-                    }
-                }
-                if (containK1 && containK2 && containK3 && containK4)
+                else if (TempAnswerList2.Count == 1)
                 {
                     isRight = true;
-                    containK1 = containK2 = containK3 = containK4 = false;
-                    HitTimes = 0;
+                }
+                else
+                {
+                    foreach (var t in TempAnswerList2)
+                    {
+                        if (t.keyword3[0] != "")
+                        {
+                            foreach (var s3 in t.keyword3)
+                            {
+                                if (speechStr.Contains(s3))
+                                {
+                                    TempAnswerList3.Add(t);
+                                }
+                            }
+                        }
+                    }
+                    if (TempAnswerList3.Count == 0)
+                    {
+                        if (TempAnswerList2[0].keyword3[0] == "")
+                        {
+                            isRight = true;
+                        }
+                        else
+                        {
+                            isRight = false;
+                        }
+                    }
+                    else if (TempAnswerList3.Count == 1)
+                    {
+                        isRight = true;
+                    }
+                    else
+                    {
+                        foreach (var t in TempAnswerList3)
+                        {
+                            if (t.keyword4[0] != "")
+                            {
+                                foreach (var s4 in t.keyword4)
+                                {
+                                    if (speechStr.Contains(s4))
+                                    {
+                                        TempAnswerList4.Add(t);
+                                    }
+                                }
+                            }
+                        }
+                        if (TempAnswerList4.Count == 0)
+                        {
+                            if (TempAnswerList3[0].keyword4[0] == "")
+                            {
+                                isRight = true;
+                            }
+                            else
+                            {
+                                isRight = false;
+                            }
+                        }
+                        else if (TempAnswerList4.Count == 1)
+                        {
+                            isRight = true;
+                        }
+                    }
                 }
             }
             return isRight;

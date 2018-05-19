@@ -25,7 +25,7 @@ namespace Assets.Scripts
 
         private static Animation characterAnimation;//神父人物模型动画对象
 
-        public static int curNo;
+        public static int curNo;  // 当前题号
 
         private static List<Answer> tempAnswer = new List<Answer>();
 
@@ -41,8 +41,8 @@ namespace Assets.Scripts
 
         public static bool canDistinguish = true;
 
-        public static string content = "";
-        public static string voicename = "";
+        public static string content = "";  //语音合成内容
+        public static string voicename = "";  //语音合成音频名称
 
         /// <summary>
         /// 进入待机状态
@@ -57,6 +57,10 @@ namespace Assets.Scripts
             tempAnswer = aq.GetQuestions();
         }
 
+
+        /// <summary>
+        /// 播放人物模型动画
+        /// </summary>
         public static void PlayModeAnimation() 
         {
             if (characterAnimation.GetClip(animName) == null)
@@ -97,6 +101,10 @@ namespace Assets.Scripts
             }
         }
 
+
+        /// <summary>
+        /// 界面显示题目及选项内容
+        /// </summary>
         public static void ShowQuestionInfo() 
         {
             u.ShowM2PAnswerPanel();
@@ -108,6 +116,9 @@ namespace Assets.Scripts
 
         static object obj = new object();
 
+        /// <summary>
+        /// 语音合成线程
+        /// </summary>
         static void playVoice() 
         {
             lock (obj)
@@ -195,8 +206,8 @@ namespace Assets.Scripts
         /// <summary>
         /// 流程过渡
         /// </summary>
-        /// <param name="Mode"></param>
-        /// <param name="txt"></param>
+        /// <param name="Mode">当前模式</param>
+        /// <param name="txt">过渡文字</param>
         public static void PlayTransitVoice(int Mode,string txt) 
         {
             animName = AnimationControl.GetAnimationClipName(CharacterAction.Looking);
