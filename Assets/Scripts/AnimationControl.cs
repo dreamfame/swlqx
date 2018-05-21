@@ -41,7 +41,7 @@ namespace Assets.Scripts
             switch (ca) 
             {
                 case CharacterAction.None:
-                    ActionName = "QUANBUDONGZUO";
+                    ActionName = "quan_donghua";
                     break;
                 case CharacterAction.Introducing:
                     ActionName = "ziwojiesao";
@@ -53,10 +53,10 @@ namespace Assets.Scripts
                     ActionName = "huidacuowu";
                     break;
                 case CharacterAction.Right:
-                    ActionName = "HUIDACUOWU";
+                    ActionName = "huidazhenque";
                     break;
                 case CharacterAction.Looking:
-                    ActionName = "KANSHU";
+                    ActionName = "kanshu";
                     break;
                 case CharacterAction.Thinking:
                     ActionName = "sikao";

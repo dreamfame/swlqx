@@ -51,9 +51,9 @@ public class VoiceManage
 
     private class msp_login
     {
-        public static string APPID = "appid = 5ae7ea3a";
-        public static string Account = "390378816@qq.com";
-        public static string Passwd = "ai910125.0";
+        public static string APPID = "appid = 5aea88c3";
+        public static string Account = "";
+        public static string Passwd = "";
     }
 
     public static int MSCLogin() 
@@ -78,8 +78,8 @@ public class VoiceManage
     {
         try
         {
-            //string @params = "engine_type = cloud,voice_name=nannan,speed=50,volume=50,pitch=50,text_encoding =UTF8,background_sound=1,sample_rate=16000";
-            string @params = "engine_type = local, voice_name = xiaoyan, text_encoding = UTF8, tts_res_path = fo|res\\tts\\xiaoyan.jet;fo|res\\tts\\common.jet, sample_rate = 16000, speed = 50, volume = 50, pitch = 50, rdn = 1";
+            //string @params = "engine_type = cloud,voice_name=xiaofeng,speed=50,volume=50,pitch=50,text_encoding =UTF8,background_sound=0,sample_rate=16000,rdn=1";
+            string @params = "engine_type = local,voice_name=xiaofeng, text_encoding = UTF8, tts_res_path = fo|res\\tts\\xiaofeng.jet;fo|res\\tts\\common.jet, sample_rate = 16000, speed = 50, volume = 50, pitch = 50, rdn = 1";
             sid = Utils.Ptr2Str(MSC.QTTSSessionBegin(@params, ref ret));
             Debug.Log(string.Format("-->开启一次语音合成[{0}]", sid));
             return SpeechSynthesis(sid,text, name,path);

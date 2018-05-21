@@ -7,6 +7,7 @@ using Assets.Scripts.SimHash;
 using System.IO;
 using System;
 using System.Collections.Generic;
+using System.Xml;
 
 public class main_test : MonoBehaviour {
 
@@ -44,6 +45,8 @@ public class main_test : MonoBehaviour {
 
     public string voice_path = ""; //音频存放目录
 
+    public string record_path = ""; // 问题记录目录
+
     public List<Answer> BeforeAskList = new List<Answer>();   // 我问沙勿略前半生题库
 
     public List<Answer> AfterAskList = new List<Answer>();    // 我问沙勿略后半生题库
@@ -75,12 +78,12 @@ public class main_test : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
 
-        if (FlowStart) //监听流程是否开始
+        /*if (FlowStart) //监听流程是否开始
         {
             FlowStart = false;
             curMode = 1;
             FlowManage.PlayTransitVoice(1, "下面进入沙勿略问我环节。");
-        }
+        }*/
 
         if (canPlay) //语音合成完毕并生成音频后播放
         {
@@ -273,6 +276,19 @@ public class main_test : MonoBehaviour {
         isFinished = false;
         isTransit = false;
         voice_path = Application.dataPath + "/Resources/Voice";
+        record_path = Application.dataPath + "/Resources/Question";
+        if (!Directory.Exists(voice_path)) 
+        {
+            Directory.CreateDirectory(voice_path);
+        }
+        if (!Directory.Exists(record_path)) 
+        {
+            Directory.CreateDirectory(record_path);
+        }
+        if (!File.Exists(record_path + "/record.xml")) 
+        {
+            File.Create(record_path + "/record.xml");
+        }
         if (CharacterModel == null)
         {
             Debug.Log("加载人物模型失败");
@@ -292,15 +308,15 @@ public class main_test : MonoBehaviour {
         u.HideM2PAnswerPanel();
         u.HideP2MAskPanel();
         u.M2P_Answer_Panel.transform.GetChild(0).transform.GetChild(0).gameObject.GetComponent<UILabel>().text = "";
-        u.M2P_Answer_Panel.transform.GetChild(1).transform.GetChild(0).gameObject.GetComponent<UILabel>().text = "";
-        u.M2P_Answer_Panel.transform.GetChild(1).transform.GetChild(1).gameObject.GetComponent<UILabel>().text = "";
-        u.M2P_Answer_Panel.transform.GetChild(1).transform.GetChild(2).gameObject.GetComponent<UILabel>().text = "";
-        u.M2P_Answer_Panel.transform.GetChild(3).gameObject.GetComponent<UILabel>().text = "";
+        u.M2P_Answer_Panel.transform.GetChild(0).transform.GetChild(1).gameObject.GetComponent<UILabel>().text = "";
+        u.M2P_Answer_Panel.transform.GetChild(0).transform.GetChild(2).gameObject.GetComponent<UILabel>().text = "";
+        u.M2P_Answer_Panel.transform.GetChild(0).transform.GetChild(3).gameObject.GetComponent<UILabel>().text = "";
+        u.M2P_Answer_Panel.transform.GetChild(1).gameObject.GetComponent<UILabel>().text = "";
         u.M2P_Answer_Panel.transform.GetChild(2).gameObject.GetComponent<UILabel>().text = "";
         u.P2M_Ask_Panel.transform.GetChild(0).transform.GetChild(1).gameObject.SetActive(false);
         u.P2M_Ask_Panel.transform.GetChild(0).transform.GetChild(1).gameObject.GetComponent<UILabel>().text = "";
-        u.P2M_Ask_Panel.transform.GetChild(1).transform.GetChild(1).gameObject.SetActive(false);
-        u.P2M_Ask_Panel.transform.GetChild(1).transform.GetChild(1).gameObject.GetComponent<UILabel>().text = "";
+        u.P2M_Ask_Panel.transform.GetChild(0).transform.GetChild(2).gameObject.SetActive(false);
+        u.P2M_Ask_Panel.transform.GetChild(0).transform.GetChild(2).gameObject.GetComponent<UILabel>().text = "";
         CharacterModel.GetComponent<Animation>().Stop();
         FlowManage.EnterStandBy(CharacterModel);
     }
